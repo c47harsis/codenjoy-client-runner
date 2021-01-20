@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,22 +20,23 @@ public class DockerRunnerService {
     private final Set<String> runningContainers = new HashSet<>();
 
 
-    public String runSolution(File solutionSources, String playerId) {
+    public String runSolution(File sources, String codenjoyURL) {
 
-        addDockerfile(solutionSources);
+        /* TODO: try to avoid copy Dockerfile. https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
+        addDockerfile(sources);
 
-        String imageId = docker.buildImageCmd(solutionSources)
-                .withNoCache(false)
+        String imageId = docker.buildImageCmd(sources)
+                .withBuildArg("CODENJOY_URL", codenjoyURL)
                 .exec(new BuildImageResultCallback())
                 .awaitImageId();
 
         String containerId = docker.createContainerCmd(imageId)
-                .withName(LocalTime.now().format(DateTimeFormatter.ofPattern("HH-mm-ss")) + "_" + playerId)
                 .exec()
                 .getId();
 
-        docker.startContainerCmd(containerId).exec();
-        runningContainers.add(containerId);
+        docker.startContainerCmd(containerId)
+                .exec();
+
         return containerId;
     }
 

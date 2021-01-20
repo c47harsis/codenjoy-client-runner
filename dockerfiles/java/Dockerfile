@@ -9,5 +9,7 @@ RUN --mount=type=cache,target=/root/.m2 mvn -f /app/pom.xml package -Dmaven.test
 
 # package stage
 FROM openjdk:11-jre-slim
+ARG CODENJOY_URL
+ENV CODENJOY_URL_VAR=$CODENJOY_URL
 COPY --from=build /app.jar /usr/local/lib/app.jar
-ENTRYPOINT ["java","-jar","/usr/local/lib/app.jar"]
+ENTRYPOINT java -jar /usr/local/lib/app.jar ${CODENJOY_URL_VAR}
