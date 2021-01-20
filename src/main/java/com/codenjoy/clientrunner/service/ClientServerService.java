@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter;
 @AllArgsConstructor
 public class ClientServerService implements CommandLineRunner {
 
-    private final ClientServerServiceConfig clientServerServiceConfig;
+    private final ClientServerServiceConfig config;
     private final GitService gitService;
     private final DockerRunnerService dockerRunnerService;
 
@@ -24,7 +24,7 @@ public class ClientServerService implements CommandLineRunner {
         File directory = new File(
                 MessageFormat.format(
                         "{0}/{1}/{2}/{3}",
-                        clientServerServiceConfig.getSolutionsFolderPath(),
+                        config.getSolutionsFolderPath(),
                         solutionDto.getPlayerId(),
                         solutionDto.getCode(),
                         LocalTime.now().format(DateTimeFormatter.ofPattern("HH-mm-ss")))
@@ -39,7 +39,7 @@ public class ClientServerService implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         SolutionDto solutionDto = new SolutionDto();
         solutionDto.setCode("123412341234");
         solutionDto.setRepoUri("https://github.com/c47harsis/testrepo.git");

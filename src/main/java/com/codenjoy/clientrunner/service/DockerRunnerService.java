@@ -4,9 +4,11 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.core.DockerClientBuilder;
 import lombok.AllArgsConstructor;
+import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
@@ -21,6 +23,9 @@ public class DockerRunnerService {
 
 
     public String runSolution(File solutionSources, String playerId) {
+
+        addDockerfile(solutionSources);
+
         String imageId = docker.buildImageCmd(solutionSources)
                 .withNoCache(false)
                 .exec(new BuildImageResultCallback())
@@ -46,5 +51,18 @@ public class DockerRunnerService {
 
     public void stopAll() {
         runningContainers.forEach(this::stopSolution);
+    }
+
+
+    private void addDockerfile(File sources) {
+        File dockerfileFrom = new File("./dockerfiles/java/Dockerfile");
+        File dockerfileTo = new File(sources, "Dockerfile");
+
+        try {
+            FileUtils.copyFile(dockerfileFrom, dockerfileTo);
+        } catch (IOException e) {
+            // TODO
+            e.printStackTrace();
+        }
     }
 }
