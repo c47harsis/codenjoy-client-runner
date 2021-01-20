@@ -55,11 +55,11 @@ public class DockerRunnerService {
 
 
     private void addDockerfile(File sources) {
-        File dockerfileFrom = new File("./dockerfiles/java/Dockerfile");
-        File dockerfileTo = new File(sources, "Dockerfile");
-
         try {
-            FileUtils.copyFile(dockerfileFrom, dockerfileTo);
+            FileUtils.copyFile(
+                    new File("./dockerfiles/java/Dockerfile"),
+                    new File(sources, "Dockerfile")
+            );
         } catch (IOException e) {
             // TODO
             e.printStackTrace();
