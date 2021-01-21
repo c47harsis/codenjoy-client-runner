@@ -1,0 +1,2 @@
+service:
+  codenjoyUrlRegex: "^https://dojorena.io/codenjoy-contest/board/player/([\\w]+)\\?code=([\\w]+)"

@@ -8,7 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,38 +21,25 @@ public class ClientServerService implements CommandLineRunner {
     private final GitService gitService;
     private final DockerRunnerService dockerRunnerService;
 
-    private final Pattern serverUrlPattern = Pattern.compile(
-            "^https://dojorena.io/codenjoy-contest/board/player/([\\w]+)\\?code=([\\w]+)"
-    );
+    private final Pattern serverUrlPattern = Pattern.compile(config.getCodenjoyUrlRegex());
 
 
     public void checkSolution(SolutionDto solutionDto) {
         Matcher matcher = serverUrlPattern.matcher(solutionDto.getCodenjoyUrl());
         if (!matcher.matches()) {
-            throw new IllegalArgumentException(
-                    String.format(
-                            "Given invalid server URL: %s%nThe URL should follow the template: %s",
-                            solutionDto.getCodenjoyUrl(),
-                            "https://dojorena.io/codenjoy-contest/board/player/<playerName>?code=<yourCode>"
-                    ));
+            throw new IllegalArgumentException(String.format("Given invalid server URL: %s", solutionDto.getCodenjoyUrl()));
         }
 
         String playerId = matcher.group(1);
         String code = matcher.group(2);
 
-        File directory = new File(
-                String.format(
-                        "./%s/%s/%s/%s",
-                        config.getSolutionsFolderPath(),
-                        playerId,
-                        code,
-                        LocalTime.now().format(DateTimeFormatter.ofPattern("HH-mm-ss")))
-        );
+        File directory = new File(String.format("./%s/%s/%s/%s", config.getSolutionsFolderPath(), playerId, code,
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy 'T'HH_mm_ss"))));
 
         Git repo = gitService.clone(solutionDto.getRepoUrl(), directory);
 
         if (repo == null) {
-            // TODO
+            // TODO: handle absent of repo
             return;
         }
 

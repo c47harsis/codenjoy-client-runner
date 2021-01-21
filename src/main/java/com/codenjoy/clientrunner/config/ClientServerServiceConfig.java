@@ -9,4 +9,5 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class ClientServerServiceConfig {
     private String solutionsFolderPath = "./solutions";
+    private String codenjoyUrlRegex = "^https://dojorena.io/codenjoy-contest/board/player/([\\w]+)\\?code=([\\w]+)";
 }
