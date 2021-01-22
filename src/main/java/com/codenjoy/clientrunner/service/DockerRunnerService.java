@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -25,7 +23,6 @@ public class DockerRunnerService {
 
     private final DockerClient docker = DockerClientBuilder.getInstance().build();
     private final Set<String> runningContainers = new HashSet<>();
-
 
     public String runSolution(File sources, String codenjoyURL) {
         List<String> logs = new ArrayList<>();
@@ -49,6 +46,7 @@ public class DockerRunnerService {
             docker.logContainerCmd(containerId)
                     .withStdOut(true)
                     .withStdErr(true)
+                    .withFollowStream(true)
                     .withTailAll()
                     .exec(new ResultCallback.Adapter<Frame>() {
                         @Override
@@ -61,11 +59,7 @@ public class DockerRunnerService {
         }
 
         try {
-            FileWriter fileWriter = new FileWriter(String.format(
-                    "%s/%s.log",
-                    sources.getPath(),
-                    LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-            ));
+            FileWriter fileWriter = new FileWriter(sources.getPath() + "/app.log");
             for (String line : logs) {
                 fileWriter.write(line + System.lineSeparator());
             }

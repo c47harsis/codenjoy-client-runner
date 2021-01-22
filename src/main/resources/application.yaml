@@ -1,2 +1,4 @@
 service:
+  solutionFolderPath: "./solutions"
+  solutionFolderPattern: "dd-MM-yyyy'T'HH_mm_ss"
   codenjoyUrlRegex: "^https://dojorena.io/codenjoy-contest/board/player/([\\w]+)\\?code=([\\w]+)"

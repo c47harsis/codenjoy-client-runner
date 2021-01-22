@@ -21,7 +21,6 @@ public class ClientServerService implements CommandLineRunner {
     private final GitService gitService;
     private final DockerRunnerService dockerRunnerService;
 
-
     public void checkSolution(SolutionDto solutionDto) {
         Pattern serverUrlPattern = Pattern.compile(config.getCodenjoyUrlRegex());
         Matcher matcher = serverUrlPattern.matcher(solutionDto.getCodenjoyUrl());
@@ -32,8 +31,8 @@ public class ClientServerService implements CommandLineRunner {
         String playerId = matcher.group(1);
         String code = matcher.group(2);
 
-        File directory = new File(String.format("./%s/%s/%s/%s", config.getSolutionsFolderPath(), playerId, code,
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy 'T'HH_mm_ss"))));
+        File directory = new File(String.format("./%s/%s/%s/%s", config.getSolutionFolderPath(), playerId, code,
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern(config.getSolutionFolderPattern()))));
 
         Git repo = gitService.clone(solutionDto.getRepoUrl(), directory);
 
@@ -53,5 +52,6 @@ public class ClientServerService implements CommandLineRunner {
         solutionDto.setRepoUrl("https://github.com/c47harsis/testrepo.git");
         solutionDto.setCodenjoyUrl("https://dojorena.io/codenjoy-contest/board/player/dojorena146?code=8433729297737152765");
         checkSolution(solutionDto);
+//      dockerRunnerService.runSolution(new File("./solutions/dojorena146/8433729297737152765/21-01-2021 T20_28_40"), "https://dojorena.io/codenjoy-contest/board/player/dojorena146?code=8433729297737152765");
     }
 }
