@@ -21,10 +21,9 @@ public class ClientServerService implements CommandLineRunner {
     private final GitService gitService;
     private final DockerRunnerService dockerRunnerService;
 
-    private final Pattern serverUrlPattern = Pattern.compile(config.getCodenjoyUrlRegex());
-
 
     public void checkSolution(SolutionDto solutionDto) {
+        Pattern serverUrlPattern = Pattern.compile(config.getCodenjoyUrlRegex());
         Matcher matcher = serverUrlPattern.matcher(solutionDto.getCodenjoyUrl());
         if (!matcher.matches()) {
             throw new IllegalArgumentException(String.format("Given invalid server URL: %s", solutionDto.getCodenjoyUrl()));
@@ -34,7 +33,7 @@ public class ClientServerService implements CommandLineRunner {
         String code = matcher.group(2);
 
         File directory = new File(String.format("./%s/%s/%s/%s", config.getSolutionsFolderPath(), playerId, code,
-                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy 'T'HH_mm_ss"))));
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy 'T'HH_mm_ss"))));
 
         Git repo = gitService.clone(solutionDto.getRepoUrl(), directory);
 
