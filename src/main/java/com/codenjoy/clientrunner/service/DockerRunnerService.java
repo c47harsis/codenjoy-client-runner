@@ -1,15 +1,22 @@
 package com.codenjoy.clientrunner.service;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
+import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.core.DockerClientBuilder;
 import lombok.AllArgsConstructor;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -21,6 +28,7 @@ public class DockerRunnerService {
 
 
     public String runSolution(File sources, String codenjoyURL) {
+        List<String> logs = new ArrayList<>();
 
         /* TODO: try to avoid copy Dockerfile. https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
         addDockerfile(sources);
@@ -37,6 +45,34 @@ public class DockerRunnerService {
         docker.startContainerCmd(containerId)
                 .exec();
 
+        try {
+            docker.logContainerCmd(containerId)
+                    .withStdOut(true)
+                    .withStdErr(true)
+                    .withTailAll()
+                    .exec(new ResultCallback.Adapter<Frame>() {
+                        @Override
+                        public void onNext(Frame object) {
+                            logs.add(object.toString());
+                        }
+                    }).awaitCompletion();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            FileWriter fileWriter = new FileWriter(String.format(
+                    "%s/%s.log",
+                    sources.getPath(),
+                    LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            ));
+            for (String line : logs) {
+                fileWriter.write(line + System.lineSeparator());
+            }
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return containerId;
     }
 
