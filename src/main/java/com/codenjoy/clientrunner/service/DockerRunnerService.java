@@ -12,9 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,24 +101,34 @@ public class DockerRunnerService {
     }
 
     private void logToFile(String containerId, String logPath) throws IOException, InterruptedException {
-        List<String> logs = new ArrayList<>();
         docker.logContainerCmd(containerId)
                 .withStdOut(true)
                 .withStdErr(true)
                 .withFollowStream(true)
                 .withTailAll()
                 .exec(new ResultCallback.Adapter<Frame>() {
+                    final Writer writer = new FileWriter(logPath);
+
                     @Override
                     public void onNext(Frame object) {
-                        logs.add(object.toString());
+                        try {
+                            writer.write(object.toString() + "\n");
+                            writer.flush();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        try {
+                            writer.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        super.onComplete();
                     }
                 }).awaitCompletion();
-
-        FileWriter fileWriter = new FileWriter(logPath);
-        for (String line : logs) {
-            fileWriter.write(line + System.lineSeparator());
-        }
-        fileWriter.close();
     }
 
     public void killAll(String playerId, String code) {
