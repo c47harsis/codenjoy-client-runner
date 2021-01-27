@@ -1,11 +1,13 @@
 package com.codenjoy.clientrunner.service;
 
+import com.codenjoy.clientrunner.config.ClientServerServiceConfig;
 import com.codenjoy.clientrunner.dto.Solution;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.Frame;
+import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.WaitResponse;
 import com.github.dockerjava.core.DockerClientBuilder;
 import lombok.AllArgsConstructor;
@@ -14,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,8 +29,19 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class DockerRunnerService {
 
+    private final ClientServerServiceConfig config;
+
     private final DockerClient docker = DockerClientBuilder.getInstance().build();
     private final Set<Solution> solutions = ConcurrentHashMap.newKeySet();
+    private final HostConfig hostConfig = HostConfig.newHostConfig();
+
+
+    @PostConstruct
+    private void init() {
+        hostConfig.withCpuPeriod(config.getContainerCpuPeriod());
+        hostConfig.withCpuQuota(config.getContainerCpuQuota());
+        hostConfig.withMemory((long) config.getContainerMemoryLimitMB() * 1000000);
+    }
 
 
     @SneakyThrows
@@ -83,7 +97,9 @@ public class DockerRunnerService {
                             solution.setImageId(imageId);
                             solution.setStatus(Solution.Status.RUNNING);
                             solution.setStarted(LocalDateTime.now());
-                            String containerId = docker.createContainerCmd(imageId).exec().getId();
+                            String containerId = docker.createContainerCmd(imageId)
+                                    .withHostConfig(hostConfig)
+                                    .exec().getId();
                             solution.setContainerId(containerId);
 
                             docker.startContainerCmd(containerId).exec();
@@ -166,11 +182,6 @@ public class DockerRunnerService {
         if (solution.getContainerId() != null) {
             docker.killContainerCmd(solution.getContainerId()).exec();
         }
-    }
-
-
-    public void inspect() {
-        solutions.forEach(System.out::println);
     }
 
 
