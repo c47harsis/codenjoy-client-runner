@@ -56,6 +56,7 @@ public class DockerRunnerService {
                             if (item.getStream() != null) {
                                 try {
                                     writer.write(item.getStream());
+                                    writer.flush();
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
