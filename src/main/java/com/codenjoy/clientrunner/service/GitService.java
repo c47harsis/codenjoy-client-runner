@@ -19,6 +19,7 @@ public class GitService {
                     .setDirectory(directory)
                     .call();
         } catch (GitAPIException e) {
+            // TODO: handle this
             e.printStackTrace();
         }
         return clonedRepo;

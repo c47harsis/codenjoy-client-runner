@@ -53,43 +53,10 @@ public class ClientServerService  {
     }
 
 
-//    @SneakyThrows
-//    @Override
-//    public void run(String... args) {
-//        new Thread(() -> {
-//            while (true) {
-//                dockerRunnerService.inspect();
-//                try {
-//                    Thread.sleep(1000);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//                System.out.println("\n------\n");
-//            }
-//        }).start();
-//
-//        SolutionDto solutionDto = new SolutionDto();
-//        solutionDto.setRepoUrl("https://github.com/c47harsis/testrepo.git");
-//        solutionDto.setCodenjoyUrl("https://dojorena.io/codenjoy-contest/board/player/dojorena146?code=8433729297737152765");
-//
-//        checkSolution(solutionDto);
-//        dockerRunnerService.inspect();
-//
-//        Thread.sleep(5000);
-//        checkSolution(solutionDto);
-//        dockerRunnerService.inspect();
-//
-//        Thread.sleep(10000);
-//        checkSolution(solutionDto);
-////
-//        dockerRunnerService.killAll("dojorena146", "8433729297737152765");
-////
-////      dockerRunnerService.runSolution(new File("./solutions/dojorena146/8433729297737152765/21-01-2021 T20_28_40"), "https://dojorena.io/codenjoy-contest/board/player/dojorena146?code=8433729297737152765");
-//    }
-
     public void killSolution(String playerId, String code, Integer solutionId) {
         dockerRunnerService.kill(playerId, code, solutionId);
     }
+
 
     public List<ShortSolutionDto> getAllSolutions(String playerId, String code) {
         return dockerRunnerService.getSolutions(playerId, code).stream().map(s -> {
@@ -102,6 +69,7 @@ public class ClientServerService  {
             return res;
         }).collect(Collectors.toList());
     }
+
 
     public List<String> getLogs(String playerId, String code, Integer solutionId) {
         Solution solution = dockerRunnerService.getSolutions(playerId, code).stream()
