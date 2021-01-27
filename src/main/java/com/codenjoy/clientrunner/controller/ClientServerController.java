@@ -29,4 +29,9 @@ public class ClientServerController {
     ResponseEntity<?> getAllSolutions(@RequestParam String playerId, @RequestParam String code) {
         return ResponseEntity.ok(clientServerService.getAllSolutions(playerId, code));
     }
+
+    @GetMapping("/get_logs")
+    ResponseEntity<?> getLogs(@RequestParam String playerId, @RequestParam String code, @RequestParam Integer solutionId) {
+        return ResponseEntity.ok(clientServerService.getLogs(playerId, code, solutionId));
+    }
 }

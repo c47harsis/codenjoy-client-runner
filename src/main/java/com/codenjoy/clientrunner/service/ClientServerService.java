@@ -5,14 +5,16 @@ import com.codenjoy.clientrunner.dto.ShortSolutionDto;
 import com.codenjoy.clientrunner.dto.Solution;
 import com.codenjoy.clientrunner.dto.SolutionDto;
 import lombok.AllArgsConstructor;
-import lombok.SneakyThrows;
 import org.eclipse.jgit.api.Git;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -99,5 +101,17 @@ public class ClientServerService  {
             res.setStatus(s.getStatus().toString());
             return res;
         }).collect(Collectors.toList());
+    }
+
+    public List<String> getLogs(String playerId, String code, Integer solutionId) {
+        Solution solution = dockerRunnerService.getSolutions(playerId, code).stream()
+                .filter(s -> solutionId.equals(s.getId()))
+                .findFirst()
+                .orElseThrow(IllegalArgumentException::new);
+        try {
+            return Files.readAllLines(Paths.get(solution.getSources() + "/app.log"));
+        } catch (IOException e) {
+            return Collections.emptyList();
+        }
     }
 }
