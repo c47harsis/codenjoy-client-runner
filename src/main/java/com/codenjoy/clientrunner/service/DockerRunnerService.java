@@ -16,8 +16,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,6 +43,7 @@ public class DockerRunnerService {
         }
 
         try {
+            solution.setStatus(Solution.Status.COMPILING);
             docker.buildImageCmd(solution.getSources())
                     .withBuildArg("CODENJOY_URL", solution.getCodenjoyUrl())
                     .exec(new BuildImageResultCallback() {
@@ -180,5 +183,11 @@ public class DockerRunnerService {
             log.error("Can not add Dockerfile to solution with id: {}", solution.getId());
             solution.setStatus(Solution.Status.ERROR);
         }
+    }
+
+    public List<Solution> getSolutions(String playerId, String code) {
+        return solutions.stream()
+                .filter(s -> playerId.equals(s.getPlayerId()) && code.equals(s.getCode()))
+                .collect(Collectors.toList());
     }
 }
