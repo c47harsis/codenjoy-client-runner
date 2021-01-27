@@ -4,7 +4,9 @@ import com.codenjoy.clientrunner.dto.Solution;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
+import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.Frame;
+import com.github.dockerjava.api.model.WaitResponse;
 import com.github.dockerjava.core.DockerClientBuilder;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -14,14 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @Service
@@ -30,112 +26,124 @@ public class DockerRunnerService {
 
     private final DockerClient docker = DockerClientBuilder.getInstance().build();
     private final Set<Solution> solutions = ConcurrentHashMap.newKeySet();
-    private final AtomicInteger nextSolutionId = new AtomicInteger(0);
-    private final ExecutorService pool = Executors.newCachedThreadPool();
 
-    public Solution createSolution(File sources, String playerId, String code, String codenjoyUrl) {
-        Solution solution = new Solution();
-        solution.setId(nextSolutionId.incrementAndGet());
-        solution.setSources(sources);
-        solution.setPlayerId(playerId);
-        solution.setCode(code);
-        solution.setCodenjoyUrl(codenjoyUrl);
-        solution.setStatus(new AtomicReference<>(Solution.Status.NEW));
-        return solution;
-    }
 
-    public String runSolution(Solution solution) {
+    @SneakyThrows
+    public String runSolution(File sources, String playerId, String code, String codenjoyUrl) {
+        Solution solution = new Solution(playerId, code, codenjoyUrl, sources);
 
         /* TODO: try to avoid copy Dockerfile. https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
         addDockerfile(solution);
         solutions.add(solution);
 
-        pool.execute(() -> {
-            try {
-                if (!solution.getStatus().compareAndSet(Solution.Status.NEW, Solution.Status.COMPILING)) {
-                    return;
-                }
-                String imageId = buildImage(solution.getSources(), solution.getCodenjoyUrl());
-                solution.setImageId(imageId);
+        if (Solution.Status.KILLED.equals(solution.getStatus())) {
+            return "nothing";
+        }
 
-                String containerId = createContainer(solution.getImageId());
-                solution.setContainerId(containerId);
+        try {
+            docker.buildImageCmd(solution.getSources())
+                    .withBuildArg("CODENJOY_URL", solution.getCodenjoyUrl())
+                    .exec(new BuildImageResultCallback() {
+                        private final Writer writer = new BufferedWriter(new FileWriter(solution.getSources() + "/build.log"));
+                        private String imageId;
+                        private String error;
 
-                if (!solution.getStatus().compareAndSet(Solution.Status.COMPILING, Solution.Status.RUNNING)) {
-                    return;
-                }
-                solution.setStarted(LocalDateTime.now());
-                startContainer(solution.getContainerId());
+                        @Override
+                        public void onNext(BuildResponseItem item) {
+                            if (item.getStream() != null) {
+                                try {
+                                    writer.write(item.getStream());
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            if (item.isBuildSuccessIndicated()) {
+                                this.imageId = item.getImageId();
+                            } else if (item.isErrorIndicated()) {
+                                this.error = item.getError();
+                            }
+                        }
 
-                logToFile(solution.getContainerId(), solution.getSources().getPath() + "/app.log");
-                solution.setFinished(LocalDateTime.now());
-                solution.getStatus().set(Solution.Status.FINISHED);
+                        @SneakyThrows
+                        @Override
+                        public void onComplete() {
+                            try {
+                                writer.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            if (Solution.Status.KILLED.equals(solution.getStatus())) {
+                                super.onComplete();
+                                return;
+                            }
+                            solution.setImageId(imageId);
+                            solution.setStatus(Solution.Status.RUNNING);
+                            solution.setStarted(LocalDateTime.now());
+                            String containerId = docker.createContainerCmd(imageId).exec().getId();
+                            solution.setContainerId(containerId);
 
-            } catch (Throwable ex) {
-                solution.getStatus().set(Solution.Status.ERROR);
-            } finally {
-                cleanup(solution);
+                            docker.startContainerCmd(containerId).exec();
+
+                            docker.logContainerCmd(containerId)
+                                    .withStdOut(true)
+                                    .withStdErr(true)
+                                    .withFollowStream(true)
+                                    .withTailAll()
+                                    .exec(new ResultCallback.Adapter<Frame>() {
+                                        final Writer writer = new FileWriter(solution.getSources() + "/app.log");
+
+                                        @Override
+                                        public void onNext(Frame object) {
+                                            try {
+                                                writer.write(object.toString() + "\n");
+                                                writer.flush();
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onComplete() {
+                                            try {
+                                                writer.close();
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
+                                            super.onComplete();
+                                        }
+                                    });
+
+                            docker.waitContainerCmd(containerId).exec(new ResultCallback.Adapter<WaitResponse>() {
+                                @SneakyThrows
+                                @Override
+                                public void onComplete() {
+                                    solution.setFinished(LocalDateTime.now());
+                                    if (!Solution.Status.KILLED.equals(solution.getStatus())) {
+                                        solution.setStatus(Solution.Status.FINISHED);
+                                    }
+                                    docker.removeContainerCmd(containerId).withRemoveVolumes(true).exec();
+                                    // TODO: remove images
+                                    super.onComplete();
+                                }
+                            });
+                            super.onComplete();
+                        }
+                    });
+        } catch (Throwable e) {
+            if (!Solution.Status.KILLED.equals(solution.getStatus())) {
+                solution.setStatus(Solution.Status.ERROR);
             }
-        });
-
+        }
         return "успех";
     }
 
-    private String buildImage(File sources, String codenjoyUrl) {
-        return docker.buildImageCmd(sources)
-                .withBuildArg("CODENJOY_URL", codenjoyUrl)
-                .exec(new BuildImageResultCallback())
-                .awaitImageId();
-    }
-
-    private String createContainer(String imageId) {
-        return docker.createContainerCmd(imageId)
-                .exec()
-                .getId();
-    }
-
-    private String startContainer(String containerId) {
-        docker.startContainerCmd(containerId)
-                .exec();
-        return containerId;
-    }
-
-    private void logToFile(String containerId, String logPath) throws IOException, InterruptedException {
-        docker.logContainerCmd(containerId)
-                .withStdOut(true)
-                .withStdErr(true)
-                .withFollowStream(true)
-                .withTailAll()
-                .exec(new ResultCallback.Adapter<Frame>() {
-                    final Writer writer = new FileWriter(logPath);
-
-                    @Override
-                    public void onNext(Frame object) {
-                        try {
-                            writer.write(object.toString() + "\n");
-                            writer.flush();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        try {
-                            writer.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        super.onComplete();
-                    }
-                }).awaitCompletion();
-    }
 
     public void killAll(String playerId, String code) {
         solutions.stream()
                 .filter(s -> playerId.equals(s.getPlayerId()) && code.equals(s.getCode()))
                 .forEach(this::kill0);
     }
+
 
     public void kill(String playerId, String code, Integer solutionId) {
         Solution solution = solutions.stream()
@@ -145,24 +153,17 @@ public class DockerRunnerService {
         kill0(solution);
     }
 
+
     private void kill0(Solution solution) {
-        AtomicReference<Solution.Status> status = solution.getStatus();
-        Solution.Status lastStatus = status.getAndSet(Solution.Status.KILLED);
-        if (Solution.Status.FINISHED.equals(lastStatus)) {
-            status.set(lastStatus);
+        if (Solution.Status.FINISHED.equals(solution.getStatus())) {
             return;
         }
+        solution.setStatus(Solution.Status.KILLED);
         if (solution.getContainerId() != null) {
             docker.killContainerCmd(solution.getContainerId()).exec();
         }
     }
 
-    private void cleanup(Solution solution) {
-        if (solution.getContainerId() != null) {
-            docker.removeContainerCmd(solution.getContainerId()).exec();
-        }
-        // TODO: Remove images
-    }
 
     public void inspect() {
         solutions.forEach(System.out::println);
@@ -177,7 +178,7 @@ public class DockerRunnerService {
             );
         } catch (IOException e) {
             log.error("Can not add Dockerfile to solution with id: {}", solution.getId());
-            solution.getStatus().set(Solution.Status.ERROR);
+            solution.setStatus(Solution.Status.ERROR);
         }
     }
 }

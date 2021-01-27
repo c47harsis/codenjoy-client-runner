@@ -43,8 +43,7 @@ public class ClientServerService implements CommandLineRunner {
             return;
         }
 
-        Solution solution = dockerRunnerService.createSolution(directory, playerId, code, solutionDto.getCodenjoyUrl());
-        String containerId = dockerRunnerService.runSolution(solution);
+        String containerId = dockerRunnerService.runSolution(directory, playerId, code, solutionDto.getCodenjoyUrl());
         System.out.println(containerId);
     }
 
@@ -77,9 +76,9 @@ public class ClientServerService implements CommandLineRunner {
 
         Thread.sleep(10000);
         checkSolution(solutionDto);
-
-//        dockerRunnerService.killAll("dojorena146", "8433729297737152765");
-
+//
+        dockerRunnerService.killAll("dojorena146", "8433729297737152765");
+//
 //      dockerRunnerService.runSolution(new File("./solutions/dojorena146/8433729297737152765/21-01-2021 T20_28_40"), "https://dojorena.io/codenjoy-contest/board/player/dojorena146?code=8433729297737152765");
     }
 
