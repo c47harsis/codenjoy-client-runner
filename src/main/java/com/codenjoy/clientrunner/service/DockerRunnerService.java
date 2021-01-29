@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -187,10 +188,19 @@ public class DockerRunnerService {
 
     private void addDockerfile(Solution solution) {
         try {
-            FileUtils.copyFile(
-                    new File("./dockerfiles/java/Dockerfile"),
-                    new File(solution.getSources(), "Dockerfile")
-            );
+            String relative = "dockerfiles/java/Dockerfile";
+
+            File inSource = new File("./" + relative);
+            File destination = new File(solution.getSources(), "Dockerfile");
+            if (inSource.exists()) {
+                FileUtils.copyFile(inSource, destination);
+                log.debug("java-dockerfile copied from sources");
+                return;
+            }
+
+            URL inJar = getClass().getResource("/WEB-INF/classes/" + relative);
+            FileUtils.copyURLToFile(inJar, destination);
+            log.debug("java-dockerfile copied from jar");
         } catch (IOException e) {
             log.error("Can not add Dockerfile to solution with id: {}", solution.getId());
             solution.setStatus(Solution.Status.ERROR);
