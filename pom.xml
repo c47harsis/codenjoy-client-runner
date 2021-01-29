@@ -90,8 +90,14 @@
 		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
+				<!-- make war runnable with main class -->
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<!-- true - eсли хочу запускать так же и 'sh codenjoy-balancer.war'
+                         false - если только как 'java -jar codenjoy-balancer.war' -->
+					<executable>false</executable>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
