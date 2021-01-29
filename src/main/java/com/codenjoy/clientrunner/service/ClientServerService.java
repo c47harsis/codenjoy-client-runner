@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,14 +30,9 @@ public class ClientServerService  {
     private final DockerRunnerService dockerRunnerService;
 
     public void checkSolution(SolutionDto solutionDto) {
-        Pattern serverUrlPattern = Pattern.compile(config.getCodenjoyUrlRegex());
-        Matcher matcher = serverUrlPattern.matcher(solutionDto.getCodenjoyUrl());
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException(String.format("Given invalid server URL: %s", solutionDto.getCodenjoyUrl()));
-        }
-
-        String playerId = matcher.group(1);
-        String code = matcher.group(2);
+        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(solutionDto.getCodenjoyUrl());
+        String playerId = playerIdAndCode.first;
+        String code = playerIdAndCode.second;
 
         File directory = new File(String.format("./%s/%s/%s/%s", config.getSolutionFolderPath(), playerId, code,
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern(config.getSolutionFolderPattern()))));
@@ -52,11 +48,28 @@ public class ClientServerService  {
         System.out.println(containerId);
     }
 
+    private Pair<String, String> extractPlayerIdAndCode(String url) {
+        Pattern serverUrlPattern = Pattern.compile(config.getCodenjoyUrlRegex());
+        Matcher matcher = serverUrlPattern.matcher(url);
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException(String.format("Given invalid server URL: %s", url));
+        }
+        return new Pair<>(matcher.group(1), matcher.group(2));
+    }
+
+    public void killSolution(String url, Integer solutionId) {
+        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(url);
+        killSolution(playerIdAndCode.first, playerIdAndCode.second, solutionId);
+    }
 
     public void killSolution(String playerId, String code, Integer solutionId) {
         dockerRunnerService.kill(playerId, code, solutionId);
     }
 
+    public List<ShortSolutionDto> getAllSolutions(String url) {
+        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(url);
+        return getAllSolutions(playerIdAndCode.first, playerIdAndCode.second);
+    }
 
     public List<ShortSolutionDto> getAllSolutions(String playerId, String code) {
         return dockerRunnerService.getSolutions(playerId, code).stream().map(s -> {
@@ -67,9 +80,13 @@ public class ClientServerService  {
             res.setStarted(s.getStarted());
             res.setStatus(s.getStatus().toString());
             return res;
-        }).collect(Collectors.toList());
+        }).sorted(Comparator.comparingInt(ShortSolutionDto::getId)).collect(Collectors.toList());
     }
 
+    public List<String> getLogs(String url, Integer solutionId) {
+        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(url);
+        return getLogs(playerIdAndCode.first, playerIdAndCode.second, solutionId);
+    }
 
     public List<String> getLogs(String playerId, String code, Integer solutionId) {
         Solution solution = dockerRunnerService.getSolutions(playerId, code).stream()
@@ -81,5 +98,30 @@ public class ClientServerService  {
         } catch (IOException e) {
             return Collections.emptyList();
         }
+    }
+
+
+    public ShortSolutionDto getSol(String url, Integer solutionId) {
+        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(url);
+        return getSol(playerIdAndCode.first, playerIdAndCode.second, solutionId);
+    }
+    public ShortSolutionDto getSol(String playerId, String code, Integer solutionId) {
+        Solution s = dockerRunnerService.getSolutions(playerId, code).stream()
+                .filter(sol -> solutionId.equals(sol.getId()))
+                .findFirst()
+                .orElseThrow(IllegalArgumentException::new);
+        ShortSolutionDto res = new ShortSolutionDto();
+        res.setCreated(s.getCreated());
+        res.setFinished(s.getFinished());
+        res.setId(s.getId());
+        res.setStarted(s.getStarted());
+        res.setStatus(s.getStatus().toString());
+        return res;
+    }
+
+    @AllArgsConstructor
+    private final static class Pair<F, S> {
+        private final F first;
+        private final S second;
     }
 }

@@ -1,30 +1,21 @@
 $(function () {
-    console.log("Hello")
+    var gitUrl = localStorage.getItem('gitUrl')
+    var codenjoyUrl = localStorage.getItem('codenjoyUrl')
+    if (gitUrl !== null) {
+        $("#gitUrl").val(gitUrl)
+    }
+    if (codenjoyUrl !== null) {
+        $("#codenjoyUrl").val(codenjoyUrl)
+    }
 
     $('#btnsubmit').click(function (e) {
-        sendSolution()
+        login()
     });
 });
 
 
-
-function sendSolution() {
-
-    var body = {}
-    body["repoUrl"] = $("#gitUrl").val()
-    body["codenjoyUrl"] = $("#codenjoyUrl").val()
-
-    console.log(body)
-
-    $.ajax({
-        type: "post",
-        url: "/check",
-        data: JSON.stringify(body),
-        dataType: "json",
-        contentType: "application/json",
-        cache: "false",
-        success: function (response) {
-            alert("Hooray!")
-        }
-    })
+function login() {
+    localStorage.setItem('gitUrl', $("#gitUrl").val())
+    localStorage.setItem('codenjoyUrl', $("#codenjoyUrl").val())
+    $(location).attr('href', 'main.html')
 }
