@@ -52,7 +52,9 @@ public class ClientServerService  {
         Pattern serverUrlPattern = Pattern.compile(config.getCodenjoyUrlRegex());
         Matcher matcher = serverUrlPattern.matcher(url);
         if (!matcher.matches()) {
-            throw new IllegalArgumentException(String.format("Given invalid server URL: %s", url));
+            throw new IllegalArgumentException(
+                    String.format("Given invalid server URL: '%s' is not match '%s'",
+                            url, config.getCodenjoyUrlRegex()));
         }
         return new Pair<>(matcher.group(1), matcher.group(2));
     }

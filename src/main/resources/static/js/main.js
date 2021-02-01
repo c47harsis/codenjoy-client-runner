@@ -25,7 +25,7 @@ $(function () {
 function stopSolution(solutionId) {
     $.ajax({
         type: "get",
-        url: "/stop",
+        url: "stop",
         data: {
             codenjoyUrl: getUrls().codenjoyUrl,
             repoUrl: getUrls().gitUrl,
@@ -60,7 +60,7 @@ function sendSolution() {
     }
     $.ajax({
         type: "post",
-        url: "/check",
+        url: "check",
         data: JSON.stringify(body),
         dataType: "json",
         contentType: "application/json",
@@ -73,7 +73,7 @@ function sendSolution() {
 function getSolutions() {
     $.ajax({
         type: "get",
-        url: "/get_all",
+        url: "get_all",
         data: {
             codenjoyUrl: getUrls().codenjoyUrl
         },
@@ -172,7 +172,7 @@ function showSolutionInfo(solutionId) {
 function fetchSolutionStatus(solutionId) {
     $.ajax({
         type: "get",
-        url: "/get_sol",
+        url: "get_sol",
         data: {
             codenjoyUrl: getUrls().codenjoyUrl,
             repoUrl: getUrls().gitUrl,
@@ -198,7 +198,7 @@ function fetchSolutionStatus(solutionId) {
 function fetchLogs(solutionId) {
     $.ajax({
         type: "get",
-        url: "/get_logs",
+        url: "get_logs",
         data: {
             codenjoyUrl: getUrls().codenjoyUrl,
             repoUrl: getUrls().gitUrl,

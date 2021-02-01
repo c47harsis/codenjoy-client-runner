@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class ClientServerServiceConfig {
     private String solutionFolderPath = "./solutions";
-    private String solutionFolderPattern = "dd-MM-yyyy'T'HH_mm_ss";
+    private String solutionFolderPattern = "yyyy-MM-dd'_'HH-mm-ss";
     private String codenjoyUrlRegex;
 
     // Docker's defaults
