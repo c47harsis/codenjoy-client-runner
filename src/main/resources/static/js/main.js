@@ -190,6 +190,8 @@ function fetchSolutionStatus(solutionId) {
             var status = response['status'];
             if (status === 'FINISHED' || status === 'ERROR' || status === 'KILLED') {
                 $('#stopSolutionButton').prop("disabled", true)
+            } else {
+                $('#stopSolutionButton').prop("disabled", false)
             }
         }
     })
