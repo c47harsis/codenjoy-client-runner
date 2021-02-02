@@ -1,16 +1,18 @@
-package com.codenjoy.clientrunner.dto;
+package com.codenjoy.clientrunner.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@EqualsAndHashCode
-@ToString
 @Getter
 @Setter
+@ToString
+@EqualsAndHashCode
 public class Solution {
     private static final AtomicInteger idCounter = new AtomicInteger(0);
 
@@ -36,6 +38,16 @@ public class Solution {
         this.created = LocalDateTime.now();
     }
 
+    public boolean isActive() {
+        switch (status) {
+            case NEW:
+            case COMPILING:
+            case RUNNING:
+                return true;
+            default:
+                return false;
+        }
+    }
 
     public synchronized void setStatus(Status newStatus) {
         if (newStatus == null || Status.KILLED.equals(status)) {
@@ -48,3 +60,4 @@ public class Solution {
         NEW, COMPILING, RUNNING, FINISHED, ERROR, KILLED
     }
 }
+

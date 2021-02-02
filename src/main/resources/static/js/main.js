@@ -73,7 +73,7 @@ function sendSolution() {
 function getSolutions() {
     $.ajax({
         type: "get",
-        url: "get_all",
+        url: "all",
         data: {
             codenjoyUrl: getUrls().codenjoyUrl
         },
@@ -90,7 +90,7 @@ function getSolutions() {
             }
             $.each(response, function (i, solution) {
                 var { id, status, created, started, finished } = solution
-                row = '<tr class="solutionRow">'
+                row = '<tr class="solutionRow" id="solutionRow-' + id + '">'
                 row += '<th class="sId">' + id + '</th>'
                 row += '<td>' + (created || "-") + '</td>'
                 row += '<td>' + (started || "-") + '</td>'
@@ -112,7 +112,7 @@ function getSolutions() {
                 }
                 row += '</tr>'
                 $('#solutionsTable').append(row);
-                $('.solutionRow').click(function (e) {
+                $('#solutionRow-' + id).click(function (e) {
                     var solutionId = $(this).find('.sId').text()
                     hideTable()
                     showSolutionInfo(solutionId);
@@ -123,7 +123,6 @@ function getSolutions() {
 }
 
 function hideTable() {
-    console.log(getSolutionsInterval)
     clearInterval(getSolutionsInterval)
     $('#table').hide();
 }
@@ -143,16 +142,17 @@ function hideSolutionInfo() {
 }
 
 function showSolutionInfo(solutionId) {
+    console.log("skoka")
     $('#solutionInfo').show();
 
+    $('#logField').empty();
     fetchSolutionStatus(solutionId)
-    fetchLogs(solutionId)
+    fetchRuntimeLogs(solutionId)
 
     $('#stopSolutionButton').click(function (e) {
         stopSolution(solutionId)
     });
     $('#closeInfoButton').click(function (e) {
-        console.log("BUTTON CLICKED")
         hideSolutionInfo()
         showTable()
     });
@@ -161,7 +161,7 @@ function showSolutionInfo(solutionId) {
     if (status !== 'ERROR' && status !== 'FINISHED' && status !== 'KILLED') {
 
         clearInterval(logsInterval)
-        logsInterval = setInterval(function () { fetchLogs(solutionId); }, 1500)
+        logsInterval = setInterval(function () { fetchRuntimeLogs(solutionId); }, 1500)
 
         clearInterval(solutionStatusInterval)
         solutionStatusInterval = setInterval(function () { fetchSolutionStatus(solutionId); }, 1500)
@@ -172,11 +172,10 @@ function showSolutionInfo(solutionId) {
 function fetchSolutionStatus(solutionId) {
     $.ajax({
         type: "get",
-        url: "get_sol",
+        url: "summary",
         data: {
-            codenjoyUrl: getUrls().codenjoyUrl,
-            repoUrl: getUrls().gitUrl,
-            solutionId: solutionId
+            solutionId: solutionId,
+            codenjoyUrl: getUrls().codenjoyUrl
         },
         dataType: "json",
         contentType: "application/json",
@@ -197,22 +196,25 @@ function fetchSolutionStatus(solutionId) {
     })
 }
 
-function fetchLogs(solutionId) {
+function fetchRuntimeLogs(solutionId) {
+    var linesCount = $('#logField .logLine').length;
+    console.log(linesCount);
+
     $.ajax({
         type: "get",
-        url: "get_logs",
+        url: "runtime_logs",
         data: {
             codenjoyUrl: getUrls().codenjoyUrl,
-            repoUrl: getUrls().gitUrl,
-            solutionId: solutionId
+            solutionId: solutionId,
+            startFromLine: linesCount
         },
         dataType: "json",
         contentType: "application/json",
         cache: "false",
         success: function (response) {
-            $('#logField').empty();
+            console.log(response);
             $.each(response, function (i, logStr) {
-                $('#logField').append('<samp>' + logStr + '</samp><br/>');
+                $('#logField').append('<samp class="logLine">' + logStr + '</samp><br/>');
             });
         }
     })

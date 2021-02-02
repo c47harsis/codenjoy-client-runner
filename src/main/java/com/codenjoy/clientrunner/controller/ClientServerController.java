@@ -1,13 +1,15 @@
 package com.codenjoy.clientrunner.controller;
 
-import com.codenjoy.clientrunner.dto.SolutionDto;
+import com.codenjoy.clientrunner.dto.CheckRequest;
 import com.codenjoy.clientrunner.service.ClientServerService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
+import static org.springframework.http.ResponseEntity.*;
+
+@RestController("/solutions")
 @AllArgsConstructor
 public class ClientServerController {
 
@@ -15,45 +17,35 @@ public class ClientServerController {
 
     @PostMapping("/check")
     @ResponseStatus(HttpStatus.OK)
-    void checkSolution(@RequestBody SolutionDto solutionDto) {
-        clientServerService.checkSolution(solutionDto);
+    void checkNewSolution(@RequestBody CheckRequest checkRequest) {
+        clientServerService.checkSolution(checkRequest);
     }
 
     @GetMapping("/stop")
     @ResponseStatus(HttpStatus.OK)
-    void kill(@RequestParam String codenjoyUrl, @RequestParam Integer solutionId) {
+    void stopSolution(@RequestParam String codenjoyUrl, @RequestParam Integer solutionId) {
         clientServerService.killSolution(codenjoyUrl, solutionId);
     }
 
-    @GetMapping("/stop0")
-    @ResponseStatus(HttpStatus.OK)
-    void kill(@RequestParam String playerId, @RequestParam String code, @RequestParam Integer solutionId) {
-        clientServerService.killSolution(playerId, code, solutionId);
-    }
-
-
-    @GetMapping("/get_all0")
-    ResponseEntity<?> getAllSolutions(@RequestParam String playerId, @RequestParam String code) {
-        return ResponseEntity.ok(clientServerService.getAllSolutions(playerId, code));
-    }
-
-    @GetMapping("/get_all")
+    @GetMapping("/all")
     ResponseEntity<?> getAllSolutions(@RequestParam String codenjoyUrl) {
-        return ResponseEntity.ok(clientServerService.getAllSolutions(codenjoyUrl));
+        return ok(clientServerService.getAllSolutionsSummary(codenjoyUrl));
     }
 
-    @GetMapping("/get_logs0")
-    ResponseEntity<?> getLogs(@RequestParam String playerId, @RequestParam String code, @RequestParam Integer solutionId) {
-        return ResponseEntity.ok(clientServerService.getLogs(playerId, code, solutionId));
+    @GetMapping("/summary")
+    ResponseEntity<?> getSolutionSummary(@RequestParam Integer solutionId, @RequestParam String codenjoyUrl) {
+        return ok(clientServerService.getSolutionSummary(codenjoyUrl, solutionId));
     }
 
-    @GetMapping("/get_logs")
-    ResponseEntity<?> getLogs(@RequestParam String codenjoyUrl, @RequestParam Integer solutionId) {
-        return ResponseEntity.ok(clientServerService.getLogs(codenjoyUrl, solutionId));
+    @GetMapping("/runtime_logs")
+    ResponseEntity<?> getRuntimeLogs(@RequestParam Integer solutionId, @RequestParam String codenjoyUrl,
+                                     @RequestParam(defaultValue = "0") Integer startFromLine) {
+        return ok(clientServerService.getRuntimeLogs(codenjoyUrl, solutionId, startFromLine));
     }
 
-    @GetMapping("/get_sol")
-    ResponseEntity<?> getSol(@RequestParam String codenjoyUrl, @RequestParam Integer solutionId) {
-        return ResponseEntity.ok(clientServerService.getSol(codenjoyUrl, solutionId));
+    @GetMapping("/build_logs")
+    ResponseEntity<?> getBuildLogs(@RequestParam Integer solutionId, @RequestParam String codenjoyUrl,
+                                   @RequestParam(defaultValue = "0") Integer startFromLine) {
+        return ok(clientServerService.getBuildLogs(codenjoyUrl, solutionId, startFromLine));
     }
 }
