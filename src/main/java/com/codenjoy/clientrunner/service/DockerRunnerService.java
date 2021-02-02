@@ -1,7 +1,8 @@
 package com.codenjoy.clientrunner.service;
 
-import com.codenjoy.clientrunner.config.ClientServerServiceConfig;
-import com.codenjoy.clientrunner.dto.Solution;
+import com.codenjoy.clientrunner.config.DockerConfig;
+import com.codenjoy.clientrunner.model.Solution;
+import com.codenjoy.clientrunner.dto.SolutionSummaryDto;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
@@ -10,7 +11,7 @@ import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.WaitResponse;
 import com.github.dockerjava.core.DockerClientBuilder;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -19,42 +20,58 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DockerRunnerService {
 
-    private final ClientServerServiceConfig config;
+    private final DockerConfig dockerConfig;
 
     private final DockerClient docker = DockerClientBuilder.getInstance().build();
+    private HostConfig hostConfig;
+
     private final Set<Solution> solutions = ConcurrentHashMap.newKeySet();
-    private final HostConfig hostConfig = HostConfig.newHostConfig();
 
-
-    @PostConstruct
-    private void init() {
-        hostConfig.withCpuPeriod(config.getContainerCpuPeriod());
-        hostConfig.withCpuQuota(config.getContainerCpuQuota());
-        hostConfig.withMemory((long) config.getContainerMemoryLimitMB() * 1000000);
+    private void killLastIfPresent(String playerId, String code) {
+        solutions.stream()
+                .filter(s -> playerId.equals(s.getPlayerId()))
+                .filter(s -> code.equals(s.getCode()))
+                .filter(Solution::isActive)
+                .forEach(this::kill);
     }
 
+    @PostConstruct
+    protected void init() {
+        hostConfig = HostConfig.newHostConfig()
+                .withCpuPeriod(dockerConfig.getContainer().getCpuPeriod())
+                .withCpuQuota(dockerConfig.getContainer().getCpuQuota())
+                .withMemory(dockerConfig.getContainer().getMemoryLimitBytes());
+    }
 
+    // TODO: Refactor this
     @SneakyThrows
-    public String runSolution(File sources, String playerId, String code, String codenjoyUrl) {
+    public void runSolution(File sources, String playerId, String code, String codenjoyUrl) {
         Solution solution = new Solution(playerId, code, codenjoyUrl, sources);
+        addDockerfile(solution);
+
+        killLastIfPresent(playerId, code);
 
         /* TODO: try to avoid copy Dockerfile. https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
-        addDockerfile(solution);
         solutions.add(solution);
 
-        if (Solution.Status.KILLED.equals(solution.getStatus())) {
-            return "nothing";
+        if (!solution.isActive()) {
+            log.debug("Attempt to run inactive solution with id: {} and status: {}", solution.getId(), solution.getStatus());
+            return;
         }
 
         try {
@@ -155,28 +172,21 @@ public class DockerRunnerService {
                 solution.setStatus(Solution.Status.ERROR);
             }
         }
-        return "успех";
     }
-
-
-    public void killAll(String playerId, String code) {
-        solutions.stream()
-                .filter(s -> playerId.equals(s.getPlayerId()) && code.equals(s.getCode()))
-                .forEach(this::kill0);
-    }
-
 
     public void kill(String playerId, String code, Integer solutionId) {
-        Solution solution = solutions.stream()
-                .filter(s -> playerId.equals(s.getPlayerId()) && code.equals(s.getCode()) && solutionId.equals(s.getId()))
+        solutions.stream()
+                .filter(s -> playerId.equals(s.getPlayerId()))
+                .filter(s -> code.equals(s.getCode()))
+                .filter(s -> solutionId.equals(s.getId()))
                 .findFirst()
-                .orElseThrow(RuntimeException::new);
-        kill0(solution);
+                .ifPresentOrElse(this::kill, () -> {
+                    throw new IllegalArgumentException();
+                });
     }
 
-
-    private void kill0(Solution solution) {
-        if (Solution.Status.FINISHED.equals(solution.getStatus())) {
+    private void kill(Solution solution) {
+        if (!solution.isActive()) {
             return;
         }
         solution.setStatus(Solution.Status.KILLED);
@@ -184,7 +194,6 @@ public class DockerRunnerService {
             docker.killContainerCmd(solution.getContainerId()).exec();
         }
     }
-
 
     private void addDockerfile(Solution solution) {
         try {
@@ -209,7 +218,50 @@ public class DockerRunnerService {
 
     public List<Solution> getSolutions(String playerId, String code) {
         return solutions.stream()
-                .filter(s -> playerId.equals(s.getPlayerId()) && code.equals(s.getCode()))
+                .filter(s -> playerId.equals(s.getPlayerId()))
+                .filter(s -> code.equals(s.getCode()))
                 .collect(Collectors.toList());
+    }
+
+    private Solution getSolution(String playerId, String code, Integer solutionId) {
+        Solution solution = solutions.stream()
+                .filter(s -> solutionId.equals(s.getId()))
+                .findFirst()
+                .orElseThrow(IllegalArgumentException::new);
+
+        if (!playerId.equals(solution.getPlayerId()) || !code.equals(solution.getCode())) {
+            throw new IllegalArgumentException();
+        }
+        return solution;
+    }
+
+    public List<SolutionSummaryDto> getAllSolutionsSummary(String playerId, String code) {
+        return getSolutions(playerId, code).stream()
+                .map(SolutionSummaryDto::fromSolution)
+                .sorted(Comparator.comparingInt(SolutionSummaryDto::getId))
+                .collect(Collectors.toList());
+    }
+
+    public SolutionSummaryDto getSolutionSummary(Integer solutionId, String playerId, String code) {
+        Solution solution = getSolution(playerId, code, solutionId);
+        return SolutionSummaryDto.fromSolution(solution);
+    }
+
+    public List<String> getBuildLogs(Integer solutionId, String playerId, String code, Integer startFromLine) {
+        Solution solution = getSolution(playerId, code, solutionId);
+        return readFileFromLine(solution.getSources() + "/build.log", startFromLine);
+    }
+
+    public List<String> getRuntimeLogs(Integer solutionId, String playerId, String code, Integer startFromLine) {
+        Solution solution = getSolution(playerId, code, solutionId);
+        return readFileFromLine(solution.getSources() + "/app.log", startFromLine);
+    }
+
+    private List<String> readFileFromLine(String filePath, Integer startLine) {
+        try (Stream<String> log = Files.lines(Paths.get(filePath))) {
+            return log.skip(startLine).collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new IllegalStateException();
+        }
     }
 }

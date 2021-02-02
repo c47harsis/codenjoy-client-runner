@@ -6,3 +6,9 @@ service:
   solutionFolderPath: "./solutions"
   solutionFolderPattern: "yyyy-MM-dd'_'HH-mm-ss"
   codenjoyUrlRegex: "^https?://[0-9A-Za-z_.\\-]+/codenjoy-contest/board/player/([\\w]+)\\?code=([\\w]+)"
+
+docker:
+  container:
+    memoryLimitMB: 0
+    cpuPeriod: 100000
+    cpuQuota: -1
