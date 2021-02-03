@@ -22,6 +22,9 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 public class ClientServerService {
 
+    public static final String BUILD_LOG = "/build.log";
+    public static final String APP_LOG = "/app.log";
+
     private final ClientServerServiceConfig config;
     private final GitService git;
     private final DockerRunnerService docker;
@@ -70,12 +73,12 @@ public class ClientServerService {
 
     public List<String> getBuildLogs(String server, int solutionId, int offset) {
         Solution solution = docker.getSolution(parse(server), solutionId);
-        return readFile(solution.getSources() + "/build.log", offset);
+        return readFile(solution.getSources() + BUILD_LOG, offset);
     }
 
     public List<String> getRuntimeLogs(String server, int solutionId, int offset) {
         Solution solution = docker.getSolution(parse(server), solutionId);
-        return readFile(solution.getSources() + "/app.log", offset);
+        return readFile(solution.getSources() + APP_LOG, offset);
     }
 
     private List<String> readFile(String filePath, int offset) {
