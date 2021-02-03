@@ -36,12 +36,6 @@ public class SolutionManager {
     private final DockerService docker;
     private final Set<Solution> solutions = ConcurrentHashMap.newKeySet();
 
-    private void killLastIfPresent(Token token) {
-        getSolutions(token).stream()
-                .filter(s -> s.getStatus().isActive())
-                .forEach(this::kill);
-    }
-
     @PostConstruct
     protected void init() {
         hostConfig = HostConfig.newHostConfig()
@@ -80,6 +74,30 @@ public class SolutionManager {
         }
     }
 
+    public void kill(Token token, int solutionId) {
+        kill(getSolution(token, solutionId));
+    }
+
+    public List<Solution> getSolutions(Token token) {
+        return solutions.stream()
+                .filter(token::isApplicable)
+                .collect(toList());
+    }
+
+    public Solution getSolution(Token token, int solutionId) {
+        return getSolutions(token).stream()
+                .filter(s -> solutionId == s.getId())
+                .findFirst()
+                .orElseThrow(IllegalArgumentException::new);
+    }
+
+    public List<SolutionSummary> getAllSolutionsSummary(Token token) {
+        return getSolutions(token).stream()
+                .map(SolutionSummary::new)
+                .sorted(Comparator.comparingInt(SolutionSummary::getId))
+                .collect(toList());
+    }
+
     private void runContainer(Solution solution, String imageId) {
         if (solution.getStatus() == KILLED) {
             return;
@@ -105,10 +123,6 @@ public class SolutionManager {
         });
     }
 
-    public void kill(Token token, int solutionId) {
-        kill(getSolution(token, solutionId));
-    }
-
     private void kill(Solution solution) {
         if (!solution.getStatus().isActive()) {
             return;
@@ -117,6 +131,12 @@ public class SolutionManager {
         if (solution.getContainerId() != null) {
             docker.killContainer(solution);
         }
+    }
+
+    private void killLastIfPresent(Token token) {
+        getSolutions(token).stream()
+                .filter(s -> s.getStatus().isActive())
+                .forEach(this::kill);
     }
 
     private void addDockerfile(Solution solution) {
@@ -141,25 +161,5 @@ public class SolutionManager {
             log.error("Can not add Dockerfile to solution with id: {}", solution.getId());
             solution.setStatus(ERROR);
         }
-    }
-
-    public List<Solution> getSolutions(Token token) {
-        return solutions.stream()
-                .filter(token::isApplicable)
-                .collect(toList());
-    }
-
-    public Solution getSolution(Token token, int solutionId) {
-        return getSolutions(token).stream()
-                .filter(s -> solutionId == s.getId())
-                .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
-    }
-
-    public List<SolutionSummary> getAllSolutionsSummary(Token token) {
-        return getSolutions(token).stream()
-                .map(SolutionSummary::new)
-                .sorted(Comparator.comparingInt(SolutionSummary::getId))
-                .collect(toList());
     }
 }
