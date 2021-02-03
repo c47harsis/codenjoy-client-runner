@@ -42,10 +42,10 @@ public class DockerRunnerService {
 
     private final Set<Solution> solutions = ConcurrentHashMap.newKeySet();
 
-    private void killLastIfPresent(String playerId, String code) {
+    private void killLastIfPresent(Server server) {
         solutions.stream()
-                .filter(s -> playerId.equals(s.getPlayerId()))
-                .filter(s -> code.equals(s.getCode()))
+                .filter(s -> server.getPlayerId().equals(s.getPlayerId()))
+                .filter(s -> server.getCode().equals(s.getCode()))
                 .filter(s -> s.getStatus().isActive())
                 .forEach(this::kill);
     }
@@ -60,11 +60,11 @@ public class DockerRunnerService {
 
     // TODO: Refactor this
     @SneakyThrows
-    public void runSolution(File sources, String playerId, String code, String server) {
-        Solution solution = new Solution(playerId, code, server, sources);
+    public void runSolution(File sources, Server server) {
+        Solution solution = new Solution(server, sources);
         addDockerfile(solution);
 
-        killLastIfPresent(playerId, code);
+        killLastIfPresent(server);
 
         /* TODO: try to avoid copy Dockerfile. https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
         solutions.add(solution);

@@ -39,9 +39,7 @@ public class ClientServerService {
                     request.getRepo());
         }
 
-        docker.runSolution(directory,
-                server.getPlayerId(), server.getCode(),
-                request.getServer());
+        docker.runSolution(directory, server);
     }
 
     private File getSolutionDirectory(Server server) {
