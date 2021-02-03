@@ -206,7 +206,7 @@ function fetchRuntimeLogs(solutionId) {
         data: {
             server: getUrls().server,
             solutionId: solutionId,
-            startFromLine: linesCount
+            offset: linesCount
         },
         dataType: "json",
         contentType: "application/json",

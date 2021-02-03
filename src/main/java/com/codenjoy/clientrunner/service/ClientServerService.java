@@ -67,14 +67,14 @@ public class ClientServerService {
         return dockerRunnerService.getSolutionSummary(solutionId, playerIdAndCode.first, playerIdAndCode.second);
     }
 
-    public List<String> getBuildLogs(String server, Integer solutionId, Integer startFromLine) {
+    public List<String> getBuildLogs(String server, Integer solutionId, Integer offset) {
         Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
-        return dockerRunnerService.getBuildLogs(solutionId, playerIdAndCode.first, playerIdAndCode.second, startFromLine);
+        return dockerRunnerService.getBuildLogs(solutionId, playerIdAndCode.first, playerIdAndCode.second, offset);
     }
 
-    public List<String> getRuntimeLogs(String server, Integer solutionId, Integer startFromLine) {
+    public List<String> getRuntimeLogs(String server, Integer solutionId, Integer offset) {
         Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
-        return dockerRunnerService.getRuntimeLogs(solutionId, playerIdAndCode.first, playerIdAndCode.second, startFromLine);
+        return dockerRunnerService.getRuntimeLogs(solutionId, playerIdAndCode.first, playerIdAndCode.second, offset);
     }
 
     @AllArgsConstructor

@@ -39,13 +39,13 @@ public class ClientServerController {
 
     @GetMapping("/runtime_logs")
     ResponseEntity<?> getRuntimeLogs(@RequestParam Integer solutionId, @RequestParam String server,
-                                     @RequestParam(defaultValue = "0") Integer startFromLine) {
-        return ok(service.getRuntimeLogs(server, solutionId, startFromLine));
+                                     @RequestParam(defaultValue = "0") Integer offset) {
+        return ok(service.getRuntimeLogs(server, solutionId, offset));
     }
 
     @GetMapping("/build_logs")
     ResponseEntity<?> getBuildLogs(@RequestParam Integer solutionId, @RequestParam String server,
-                                   @RequestParam(defaultValue = "0") Integer startFromLine) {
-        return ok(service.getBuildLogs(server, solutionId, startFromLine));
+                                   @RequestParam(defaultValue = "0") Integer offset) {
+        return ok(service.getBuildLogs(server, solutionId, offset));
     }
 }

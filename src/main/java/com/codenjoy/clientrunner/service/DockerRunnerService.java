@@ -247,19 +247,19 @@ public class DockerRunnerService {
         return SolutionSummaryDto.fromSolution(solution);
     }
 
-    public List<String> getBuildLogs(Integer solutionId, String playerId, String code, Integer startFromLine) {
+    public List<String> getBuildLogs(Integer solutionId, String playerId, String code, Integer offset) {
         Solution solution = getSolution(playerId, code, solutionId);
-        return readFileFromLine(solution.getSources() + "/build.log", startFromLine);
+        return readFileFromLine(solution.getSources() + "/build.log", offset);
     }
 
-    public List<String> getRuntimeLogs(Integer solutionId, String playerId, String code, Integer startFromLine) {
+    public List<String> getRuntimeLogs(Integer solutionId, String playerId, String code, Integer offset) {
         Solution solution = getSolution(playerId, code, solutionId);
-        return readFileFromLine(solution.getSources() + "/app.log", startFromLine);
+        return readFileFromLine(solution.getSources() + "/app.log", offset);
     }
 
-    private List<String> readFileFromLine(String filePath, Integer startLine) {
+    private List<String> readFileFromLine(String filePath, Integer offset) {
         try (Stream<String> log = Files.lines(Paths.get(filePath))) {
-            return log.skip(startLine).collect(Collectors.toList());
+            return log.skip(offset).collect(Collectors.toList());
         } catch (IOException e) {
             throw new IllegalStateException();
         }
