@@ -55,45 +55,52 @@ public class DockerRunnerService {
         addDockerfile(solution);
         killLastIfPresent(server);
 
-        /* TODO: try to avoid copy Dockerfile. https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
+        /* TODO: try to avoid copy Dockerfile.
+            https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
         solutions.add(solution);
 
         if (!solution.getStatus().isActive()) {
-            log.debug("Attempt to run inactive solution with id: {} and status: {}", solution.getId(), solution.getStatus());
+            log.debug("Attempt to run inactive solution " +
+                    "with id: {} and status: {}",
+                    solution.getId(), solution.getStatus());
             return;
         }
 
         try {
             solution.setStatus(COMPILING);
-            LogWriter writer = new LogWriter(solution, true);
-            docker.buildImage(solution, writer, imageId -> {
-                if (solution.getStatus() == KILLED) {
-                    return;
-                }
-                solution.setImageId(imageId);
-                solution.setStatus(RUNNING);
-                solution.setStarted(LocalDateTime.now());
-                String containerId = docker.createContainer(imageId, hostConfig);
-                solution.setContainerId(containerId);
-
-                docker.startContainer(solution);
-
-                docker.logContainer(solution, new LogWriter(solution, false));
-
-                docker.waitContainer(solution, () -> {
-                    solution.setFinished(LocalDateTime.now());
-                    if (solution.getStatus() == KILLED) {
-                        solution.setStatus(FINISHED);
-                    }
-                    docker.removeContainer(solution);
-                    // TODO: remove images
-                });
-            });
+            docker.buildImage(solution,
+                    new LogWriter(solution, true),
+                    imageId -> runContainer(solution, imageId));
         } catch (Throwable e) {
             if (!KILLED.equals(solution.getStatus())) {
                 solution.setStatus(ERROR);
             }
         }
+    }
+
+    private void runContainer(Solution solution, String imageId) {
+        if (solution.getStatus() == KILLED) {
+            return;
+        }
+        solution.setImageId(imageId);
+        solution.setStatus(RUNNING);
+        solution.setStarted(LocalDateTime.now());
+
+        String containerId = docker.createContainer(imageId, hostConfig);
+        solution.setContainerId(containerId);
+
+        docker.startContainer(solution);
+
+        docker.logContainer(solution, new LogWriter(solution, false));
+
+        docker.waitContainer(solution, () -> {
+            solution.setFinished(LocalDateTime.now());
+            if (solution.getStatus() == KILLED) {
+                solution.setStatus(FINISHED);
+            }
+            docker.removeContainer(solution);
+            // TODO: remove images
+        });
     }
 
     public void kill(Server server, int solutionId) {
