@@ -21,8 +21,8 @@ public class ClientServerService {
     private final GitService git;
     private final DockerRunnerService docker;
 
-    public void checkSolution(CheckRequest checkRequest) {
-        Server server = extractPlayerIdAndCode(checkRequest.getServer());
+    public void checkSolution(CheckRequest request) {
+        Server server = parse(request.getServer());
 
         File directory = new File(String.format("./%s/%s/%s/%s",
                 config.getSolutionFolder().getPath(),
@@ -30,44 +30,44 @@ public class ClientServerService {
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern(config.getSolutionFolder().getPattern()))));
 
         // TODO: async
-        Git repo = git.clone(checkRequest.getRepo(), directory);
+        Git repo = git.clone(request.getRepo(), directory);
 
         if (repo == null) {
             throw new IllegalArgumentException("Can not clone repository: " +
-                    checkRequest.getRepo());
+                    request.getRepo());
         }
 
         docker.runSolution(directory,
                 server.getPlayerId(), server.getCode(),
-                checkRequest.getServer());
+                request.getServer());
     }
 
-    private Server extractPlayerIdAndCode(String url) {
+    private Server parse(String url) {
         return new Server(url, config.getServerRegex());
     }
 
     public void killSolution(String server, int solutionId) {
-        Server playerIdAndCode = extractPlayerIdAndCode(server);
+        Server playerIdAndCode = parse(server);
         docker.kill(playerIdAndCode.getPlayerId(), playerIdAndCode.getCode(), solutionId);
     }
 
     public List<SolutionSummary> getAllSolutionsSummary(String server) {
-        Server playerIdAndCode = extractPlayerIdAndCode(server);
+        Server playerIdAndCode = parse(server);
         return docker.getAllSolutionsSummary(playerIdAndCode.getPlayerId(), playerIdAndCode.getCode());
     }
 
     public SolutionSummary getSolutionSummary(String server, int solutionId) {
-        Server playerIdAndCode = extractPlayerIdAndCode(server);
+        Server playerIdAndCode = parse(server);
         return docker.getSolutionSummary(solutionId, playerIdAndCode.getPlayerId(), playerIdAndCode.getCode());
     }
 
     public List<String> getBuildLogs(String server, int solutionId, int offset) {
-        Server playerIdAndCode = extractPlayerIdAndCode(server);
+        Server playerIdAndCode = parse(server);
         return docker.getBuildLogs(solutionId, playerIdAndCode.getPlayerId(), playerIdAndCode.getCode(), offset);
     }
 
     public List<String> getRuntimeLogs(String server, int solutionId, int offset) {
-        Server playerIdAndCode = extractPlayerIdAndCode(server);
+        Server playerIdAndCode = parse(server);
         return docker.getRuntimeLogs(solutionId, playerIdAndCode.getPlayerId(), playerIdAndCode.getCode(), offset);
     }
 
