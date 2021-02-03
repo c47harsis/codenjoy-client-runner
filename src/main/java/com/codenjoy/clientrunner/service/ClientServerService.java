@@ -51,28 +51,23 @@ public class ClientServerService {
     }
 
     public void killSolution(String server, int solutionId) {
-        Server playerIdAndCode = parse(server);
-        docker.kill(playerIdAndCode.getPlayerId(), playerIdAndCode.getCode(), solutionId);
+        docker.kill(parse(server), solutionId);
     }
 
     public List<SolutionSummary> getAllSolutionsSummary(String server) {
-        Server playerIdAndCode = parse(server);
-        return docker.getAllSolutionsSummary(playerIdAndCode.getPlayerId(), playerIdAndCode.getCode());
+        return docker.getAllSolutionsSummary(parse(server));
     }
 
     public SolutionSummary getSolutionSummary(String server, int solutionId) {
-        Server playerIdAndCode = parse(server);
-        return docker.getSolutionSummary(solutionId, playerIdAndCode.getPlayerId(), playerIdAndCode.getCode());
+        return docker.getSolutionSummary(solutionId, parse(server));
     }
 
     public List<String> getBuildLogs(String server, int solutionId, int offset) {
-        Server playerIdAndCode = parse(server);
-        return docker.getBuildLogs(solutionId, playerIdAndCode.getPlayerId(), playerIdAndCode.getCode(), offset);
+        return docker.getBuildLogs(solutionId, parse(server), offset);
     }
 
     public List<String> getRuntimeLogs(String server, int solutionId, int offset) {
-        Server playerIdAndCode = parse(server);
-        return docker.getRuntimeLogs(solutionId, playerIdAndCode.getPlayerId(), playerIdAndCode.getCode(), offset);
+        return docker.getRuntimeLogs(solutionId, parse(server), offset);
     }
 
 }

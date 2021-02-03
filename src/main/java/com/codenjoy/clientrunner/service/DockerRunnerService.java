@@ -2,6 +2,7 @@ package com.codenjoy.clientrunner.service;
 
 import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
+import com.codenjoy.clientrunner.model.Server;
 import com.codenjoy.clientrunner.model.Solution;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
@@ -176,10 +177,10 @@ public class DockerRunnerService {
         }
     }
 
-    public void kill(String playerId, String code, int solutionId) {
+    public void kill(Server server, int solutionId) {
         solutions.stream()
-                .filter(s -> playerId.equals(s.getPlayerId()))
-                .filter(s -> code.equals(s.getCode()))
+                .filter(s -> server.getPlayerId().equals(s.getPlayerId()))
+                .filter(s -> server.getCode().equals(s.getCode()))
                 .filter(s -> solutionId == s.getId())
                 .findFirst()
                 .ifPresentOrElse(this::kill, () -> {
@@ -221,44 +222,45 @@ public class DockerRunnerService {
         }
     }
 
-    public List<Solution> getSolutions(String playerId, String code) {
+    public List<Solution> getSolutions(Server server) {
         return solutions.stream()
-                .filter(s -> playerId.equals(s.getPlayerId()))
-                .filter(s -> code.equals(s.getCode()))
+                .filter(s -> server.getPlayerId().equals(s.getPlayerId()))
+                .filter(s -> server.getCode().equals(s.getCode()))
                 .collect(Collectors.toList());
     }
 
-    private Solution getSolution(String playerId, String code, int solutionId) {
+    private Solution getSolution(Server server, int solutionId) {
         Solution solution = solutions.stream()
                 .filter(s -> solutionId == s.getId())
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new);
 
-        if (!playerId.equals(solution.getPlayerId()) || !code.equals(solution.getCode())) {
+        if (!server.getPlayerId().equals(solution.getPlayerId())
+                || !server.getCode().equals(solution.getCode())) {
             throw new IllegalArgumentException();
         }
         return solution;
     }
 
-    public List<SolutionSummary> getAllSolutionsSummary(String playerId, String code) {
-        return getSolutions(playerId, code).stream()
+    public List<SolutionSummary> getAllSolutionsSummary(Server server) {
+        return getSolutions(server).stream()
                 .map(SolutionSummary::new)
                 .sorted(Comparator.comparingInt(SolutionSummary::getId))
                 .collect(Collectors.toList());
     }
 
-    public SolutionSummary getSolutionSummary(int solutionId, String playerId, String code) {
-        Solution solution = getSolution(playerId, code, solutionId);
+    public SolutionSummary getSolutionSummary(int solutionId, Server server) {
+        Solution solution = getSolution(server, solutionId);
         return new SolutionSummary(solution);
     }
 
-    public List<String> getBuildLogs(int solutionId, String playerId, String code, int offset) {
-        Solution solution = getSolution(playerId, code, solutionId);
+    public List<String> getBuildLogs(int solutionId, Server server, int offset) {
+        Solution solution = getSolution(server, solutionId);
         return readFileFromLine(solution.getSources() + "/build.log", offset);
     }
 
-    public List<String> getRuntimeLogs(int solutionId, String playerId, String code, int offset) {
-        Solution solution = getSolution(playerId, code, solutionId);
+    public List<String> getRuntimeLogs(int solutionId, Server server, int offset) {
+        Solution solution = getSolution(server, solutionId);
         return readFileFromLine(solution.getSources() + "/app.log", offset);
     }
 
