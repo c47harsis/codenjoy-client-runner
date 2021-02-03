@@ -50,7 +50,7 @@ function getUrls() {
 }
 
 function goToIndex() {
-    $(location).attr('href', '/');
+    $(location).attr('href', '.');
 }
 
 function sendSolution() {
