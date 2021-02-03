@@ -18,12 +18,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.codenjoy.clientrunner.service.LogWriter.APP_LOG;
+import static com.codenjoy.clientrunner.service.LogWriter.BUILD_LOG;
+
 @Service
 @AllArgsConstructor
 public class ClientServerService {
-
-    public static final String BUILD_LOG = "/build.log";
-    public static final String APP_LOG = "/app.log";
 
     private final ClientServerServiceConfig config;
     private final GitService git;
