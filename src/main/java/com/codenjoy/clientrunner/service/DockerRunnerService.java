@@ -171,12 +171,7 @@ public class DockerRunnerService {
     }
 
     public void kill(Server server, int solutionId) {
-        getSolutions(server).stream()
-                .filter(s -> solutionId == s.getId())
-                .findFirst()
-                .ifPresentOrElse(this::kill, () -> {
-                    throw new IllegalArgumentException();
-                });
+        kill(getSolution(server, solutionId));
     }
 
     private void kill(Solution solution) {
