@@ -11,16 +11,18 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SolutionSummary {
 
+    public static final String HH_MM_SS = "hh:mm:ss";
+
     private int id;
     private String status;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "hh:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = HH_MM_SS)
     private LocalDateTime created;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "hh:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = HH_MM_SS)
     private LocalDateTime started;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "hh:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = HH_MM_SS)
     private LocalDateTime finished;
 
     public SolutionSummary(Solution solution) {
