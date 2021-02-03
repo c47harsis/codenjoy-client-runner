@@ -3,8 +3,9 @@ server:
     context-path: ${context:/codenjoy-client-runner}
 
 service:
-  solutionFolderPath: "./solutions"
-  solutionFolderPattern: "yyyy-MM-dd'_'HH-mm-ss"
+  solutionFolder:
+    path: "./solutions"
+    pattern: "yyyy-MM-dd'_'HH-mm-ss"
   codenjoyUrlRegex: "^https?://[0-9A-Za-z_.\\-]+/codenjoy-contest/board/player/([\\w]+)\\?code=([\\w]+)"
 
 docker:

@@ -28,8 +28,8 @@ public class ClientServerService {
         String playerId = playerIdAndCode.first;
         String code = playerIdAndCode.second;
 
-        File directory = new File(String.format("./%s/%s/%s/%s", config.getSolutionFolderPath(), playerId, code,
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern(config.getSolutionFolderPattern()))));
+        File directory = new File(String.format("./%s/%s/%s/%s", config.getSolutionFolder().getPath(), playerId, code,
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern(config.getSolutionFolder().getPattern()))));
 
         // TODO: async
         Git repo = gitService.clone(checkRequest.getRepoUrl(), directory);
