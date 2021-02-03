@@ -12,8 +12,6 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 @AllArgsConstructor
@@ -43,14 +41,7 @@ public class ClientServerService {
     }
 
     private Server extractPlayerIdAndCode(String url) {
-        Pattern serverUrlPattern = Pattern.compile(config.getServerRegex());
-        Matcher matcher = serverUrlPattern.matcher(url);
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException(
-                    String.format("Given invalid server URL: '%s' is not match '%s'",
-                            url, config.getServerRegex()));
-        }
-        return new Server(matcher.group(1), matcher.group(2));
+        return new Server(url, config.getServerRegex());
     }
 
     public void killSolution(String server, int solutionId) {
