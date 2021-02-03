@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 public class DockerRunnerService {
 
+    public static final String SERVER_PARAMETER = "CODENJOY_URL";
     private final DockerConfig config;
     private final DockerClient docker = DockerClientBuilder.getInstance().build();
     private HostConfig hostConfig;
@@ -59,7 +60,6 @@ public class DockerRunnerService {
     public void runSolution(Server server, File sources) {
         Solution solution = new Solution(server, sources);
         addDockerfile(solution);
-
         killLastIfPresent(server);
 
         /* TODO: try to avoid copy Dockerfile. https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
@@ -73,7 +73,7 @@ public class DockerRunnerService {
         try {
             solution.setStatus(COMPILING);
             docker.buildImageCmd(solution.getSources())
-                    .withBuildArg("CODENJOY_URL", solution.getServer())
+                    .withBuildArg(SERVER_PARAMETER, solution.getServer())
                     .exec(new BuildImageResultCallback() {
                         private final Writer writer = new BufferedWriter(new FileWriter(solution.getSources() + "/build.log"));
                         private String imageId;
