@@ -23,7 +23,7 @@ public class ClientServerController {
 
     @GetMapping("/stop")
     @ResponseStatus(HttpStatus.OK)
-    void stopSolution(@RequestParam String server, @RequestParam Integer solutionId) {
+    void stopSolution(@RequestParam String server, @RequestParam int solutionId) {
         service.killSolution(server, solutionId);
     }
 
@@ -33,19 +33,19 @@ public class ClientServerController {
     }
 
     @GetMapping("/summary")
-    ResponseEntity<?> getSolutionSummary(@RequestParam Integer solutionId, @RequestParam String server) {
+    ResponseEntity<?> getSolutionSummary(@RequestParam int solutionId, @RequestParam String server) {
         return ok(service.getSolutionSummary(server, solutionId));
     }
 
     @GetMapping("/runtime_logs")
-    ResponseEntity<?> getRuntimeLogs(@RequestParam Integer solutionId, @RequestParam String server,
-                                     @RequestParam(defaultValue = "0") Integer offset) {
+    ResponseEntity<?> getRuntimeLogs(@RequestParam int solutionId, @RequestParam String server,
+                                     @RequestParam(defaultValue = "0") int offset) {
         return ok(service.getRuntimeLogs(server, solutionId, offset));
     }
 
     @GetMapping("/build_logs")
-    ResponseEntity<?> getBuildLogs(@RequestParam Integer solutionId, @RequestParam String server,
-                                   @RequestParam(defaultValue = "0") Integer offset) {
+    ResponseEntity<?> getBuildLogs(@RequestParam int solutionId, @RequestParam String server,
+                                   @RequestParam(defaultValue = "0") int offset) {
         return ok(service.getBuildLogs(server, solutionId, offset));
     }
 }
