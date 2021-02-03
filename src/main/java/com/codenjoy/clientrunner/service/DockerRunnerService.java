@@ -16,7 +16,8 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -69,22 +70,17 @@ public class DockerRunnerService {
 
         try {
             solution.setStatus(COMPILING);
+            LogWriter writer = new LogWriter(solution, true);
             docker.buildImageCmd(solution.getSources())
                     .withBuildArg(SERVER_PARAMETER, solution.getServer())
                     .exec(new BuildImageResultCallback() {
-                        private final Writer writer = new BufferedWriter(new FileWriter(solution.getSources() + "/build.log"));
                         private String imageId;
                         private String error;
 
                         @Override
                         public void onNext(BuildResponseItem item) {
                             if (item.getStream() != null) {
-                                try {
-                                    writer.write(item.getStream());
-                                    writer.flush();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
+                                writer.write(item.getStream());
                             }
                             if (item.isBuildSuccessIndicated()) {
                                 this.imageId = item.getImageId();
@@ -96,11 +92,7 @@ public class DockerRunnerService {
                         @SneakyThrows
                         @Override
                         public void onComplete() {
-                            try {
-                                writer.close();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            writer.close();
                             if (solution.getStatus() == KILLED) {
                                 super.onComplete();
                                 return;
@@ -115,31 +107,22 @@ public class DockerRunnerService {
 
                             docker.startContainerCmd(containerId).exec();
 
+                            LogWriter writer = new LogWriter(solution, false);
                             docker.logContainerCmd(containerId)
                                     .withStdOut(true)
                                     .withStdErr(true)
                                     .withFollowStream(true)
                                     .withTailAll()
                                     .exec(new ResultCallback.Adapter<Frame>() {
-                                        final Writer writer = new FileWriter(solution.getSources() + "/app.log");
 
                                         @Override
                                         public void onNext(Frame object) {
-                                            try {
-                                                writer.write(object.toString() + "\n");
-                                                writer.flush();
-                                            } catch (IOException e) {
-                                                e.printStackTrace();
-                                            }
+                                            writer.write(object);
                                         }
 
                                         @Override
                                         public void onComplete() {
-                                            try {
-                                                writer.close();
-                                            } catch (IOException e) {
-                                                e.printStackTrace();
-                                            }
+                                            writer.close();
                                             super.onComplete();
                                         }
                                     });
