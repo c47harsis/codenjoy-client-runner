@@ -11,28 +11,29 @@ import javax.validation.ValidationException;
 @ConfigurationProperties(prefix = "docker")
 public class DockerConfig {
 
+    public static final int MINIMAL_MEMORY_LIMIT = 6;
     private Container container;
     private String dockerfilesFolder;
 
     @Data
     public static class Container {
-        private static final long BYTES_IN_MB = 1024 * 1024;
+        private static final long BYTES_IN_MB = 1024L * 1024L;
 
         // TODO: container gets killed when memory limit exceeded. Need to check this behaviour
-        private Integer memoryLimitMB;
-        private Long cpuPeriod;
-        private Long cpuQuota;
+        private int memoryLimitMB;
+        private long cpuPeriod;
+        private long cpuQuota;
 
-        public void setMemoryLimitMB(Integer value) {
-            if (value >= 6 || value == 0) {
-                memoryLimitMB = value;
-            } else {
+        public void setMemoryLimitMB(int value) {
+            if (value != 0 && value < MINIMAL_MEMORY_LIMIT) {
                 throw new ValidationException("Set 0 for docker's default container memory limit," +
                         " otherwise the value should be not less than 6MB");
             }
+
+            memoryLimitMB = value;
         }
 
-        public Long getMemoryLimitBytes() {
+        public long getMemoryLimitBytes() {
             return BYTES_IN_MB * memoryLimitMB;
         }
     }

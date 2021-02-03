@@ -7,45 +7,45 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static org.springframework.http.ResponseEntity.*;
+import static org.springframework.http.ResponseEntity.ok;
 
 @RestController("/solutions")
 @AllArgsConstructor
 public class ClientServerController {
 
-    private final ClientServerService clientServerService;
+    private final ClientServerService service;
 
     @PostMapping("/check")
     @ResponseStatus(HttpStatus.OK)
-    void checkNewSolution(@RequestBody CheckRequest checkRequest) {
-        clientServerService.checkSolution(checkRequest);
+    void checkNewSolution(@RequestBody CheckRequest request) {
+        service.checkSolution(request);
     }
 
     @GetMapping("/stop")
     @ResponseStatus(HttpStatus.OK)
-    void stopSolution(@RequestParam String codenjoyUrl, @RequestParam Integer solutionId) {
-        clientServerService.killSolution(codenjoyUrl, solutionId);
+    void stopSolution(@RequestParam String serverUrl, @RequestParam int solutionId) {
+        service.killSolution(serverUrl, solutionId);
     }
 
     @GetMapping("/all")
-    ResponseEntity<?> getAllSolutions(@RequestParam String codenjoyUrl) {
-        return ok(clientServerService.getAllSolutionsSummary(codenjoyUrl));
+    ResponseEntity<?> getAllSolutions(@RequestParam String serverUrl) {
+        return ok(service.getAllSolutionsSummary(serverUrl));
     }
 
     @GetMapping("/summary")
-    ResponseEntity<?> getSolutionSummary(@RequestParam Integer solutionId, @RequestParam String codenjoyUrl) {
-        return ok(clientServerService.getSolutionSummary(codenjoyUrl, solutionId));
+    ResponseEntity<?> getSolutionSummary(@RequestParam int solutionId, @RequestParam String serverUrl) {
+        return ok(service.getSolutionSummary(serverUrl, solutionId));
     }
 
     @GetMapping("/runtime_logs")
-    ResponseEntity<?> getRuntimeLogs(@RequestParam Integer solutionId, @RequestParam String codenjoyUrl,
-                                     @RequestParam(defaultValue = "0") Integer startFromLine) {
-        return ok(clientServerService.getRuntimeLogs(codenjoyUrl, solutionId, startFromLine));
+    ResponseEntity<?> getRuntimeLogs(@RequestParam int solutionId, @RequestParam String serverUrl,
+                                     @RequestParam(defaultValue = "0") int offset) {
+        return ok(service.getRuntimeLogs(serverUrl, solutionId, offset));
     }
 
     @GetMapping("/build_logs")
-    ResponseEntity<?> getBuildLogs(@RequestParam Integer solutionId, @RequestParam String codenjoyUrl,
-                                   @RequestParam(defaultValue = "0") Integer startFromLine) {
-        return ok(clientServerService.getBuildLogs(codenjoyUrl, solutionId, startFromLine));
+    ResponseEntity<?> getBuildLogs(@RequestParam int solutionId, @RequestParam String serverUrl,
+                                   @RequestParam(defaultValue = "0") int offset) {
+        return ok(service.getBuildLogs(serverUrl, solutionId, offset));
     }
 }

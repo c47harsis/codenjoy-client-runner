@@ -3,13 +3,13 @@ var logsInterval
 var solutionStatusInterval
 
 $(function () {
-    var { gitUrl, codenjoyUrl } = getUrls()
-    if (gitUrl === null || codenjoyUrl === null) {
+    var { repo, serverUrl } = getUrls()
+    if (repo === null || serverUrl === null) {
         $(location).attr('href', '/');
     }
 
-    $("#codenjoyUrl").text(codenjoyUrl)
-    $("#gitUrl").text(gitUrl)
+    $("#serverUrl").text(serverUrl)
+    $("#repo").text(repo)
 
     $("#editButton").click(function (e) {
         goToIndex()
@@ -27,8 +27,8 @@ function stopSolution(solutionId) {
         type: "get",
         url: "stop",
         data: {
-            codenjoyUrl: getUrls().codenjoyUrl,
-            repoUrl: getUrls().gitUrl,
+            serverUrl: getUrls().serverUrl,
+            repo: getUrls().repo,
             solutionId: solutionId
         },
         dataType: "json",
@@ -44,8 +44,8 @@ function stopSolution(solutionId) {
 
 function getUrls() {
     return {
-        gitUrl: localStorage.getItem('gitUrl'),
-        codenjoyUrl: localStorage.getItem('codenjoyUrl')
+        repo: localStorage.getItem('repo'),
+        serverUrl: localStorage.getItem('serverUrl')
     }
 }
 
@@ -55,8 +55,8 @@ function goToIndex() {
 
 function sendSolution() {
     var body = {
-        repoUrl: getUrls().gitUrl,
-        codenjoyUrl: getUrls().codenjoyUrl
+        repo: getUrls().repo,
+        serverUrl: getUrls().serverUrl
     }
     $.ajax({
         type: "post",
@@ -75,7 +75,7 @@ function getSolutions() {
         type: "get",
         url: "all",
         data: {
-            codenjoyUrl: getUrls().codenjoyUrl
+            serverUrl: getUrls().serverUrl
         },
         dataType: "json",
         contentType: "application/json",
@@ -142,7 +142,6 @@ function hideSolutionInfo() {
 }
 
 function showSolutionInfo(solutionId) {
-    console.log("skoka")
     $('#solutionInfo').show();
 
     $('#logField').empty();
@@ -175,7 +174,7 @@ function fetchSolutionStatus(solutionId) {
         url: "summary",
         data: {
             solutionId: solutionId,
-            codenjoyUrl: getUrls().codenjoyUrl
+            serverUrl: getUrls().serverUrl
         },
         dataType: "json",
         contentType: "application/json",
@@ -204,9 +203,9 @@ function fetchRuntimeLogs(solutionId) {
         type: "get",
         url: "runtime_logs",
         data: {
-            codenjoyUrl: getUrls().codenjoyUrl,
+            serverUrl: getUrls().serverUrl,
             solutionId: solutionId,
-            startFromLine: linesCount
+            offset: linesCount
         },
         dataType: "json",
         contentType: "application/json",

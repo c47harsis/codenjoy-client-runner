@@ -1,4 +1,4 @@
-package com.codenjoy.clientrunner.service;
+package com.codenjoy.clientrunner.service.facade;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,15 +14,14 @@ import java.io.File;
 public class GitService {
 
     public Git clone(String repoURI, File directory) {
-        Git clonedRepo = null;
         try {
-            clonedRepo = Git.cloneRepository()
+            return Git.cloneRepository()
                     .setURI(repoURI)
                     .setDirectory(directory)
                     .call();
         } catch (GitAPIException e) {
             log.error("Can not clone repository: {}", repoURI);
+            return null;
         }
-        return clonedRepo;
     }
 }

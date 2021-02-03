@@ -1,11 +1,11 @@
 $(function () {
-    var gitUrl = localStorage.getItem('gitUrl')
-    var codenjoyUrl = localStorage.getItem('codenjoyUrl')
-    if (gitUrl !== null) {
-        $("#gitUrl").val(gitUrl)
+    var repo = localStorage.getItem('repo')
+    var serverUrl = localStorage.getItem('serverUrl')
+    if (repo !== null) {
+        $("#repo").val(repo)
     }
-    if (codenjoyUrl !== null) {
-        $("#codenjoyUrl").val(codenjoyUrl)
+    if (serverUrl !== null) {
+        $("#serverUrl").val(serverUrl)
     }
 
     $('#btnsubmit').click(function (e) {
@@ -15,7 +15,7 @@ $(function () {
 
 
 function login() {
-    localStorage.setItem('gitUrl', $("#gitUrl").val())
-    localStorage.setItem('codenjoyUrl', $("#codenjoyUrl").val())
+    localStorage.setItem('repo', $("#repo").val())
+    localStorage.setItem('serverUrl', $("#serverUrl").val())
     $(location).attr('href', 'main.html')
 }
