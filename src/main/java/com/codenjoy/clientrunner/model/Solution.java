@@ -24,7 +24,7 @@ public class Solution {
     private String playerId;
     private String code;
     private String server;
-    private volatile Status status;
+    public volatile Status status;
     private LocalDateTime created;
     private LocalDateTime started;
     private LocalDateTime finished;
@@ -33,24 +33,13 @@ public class Solution {
     private File sources;
 
     public Solution(String playerId, String code, String server, File sources) {
-        this.id = Solution.idCounter.incrementAndGet();
+        this.id = idCounter.incrementAndGet();
         this.playerId = playerId;
         this.code = code;
         this.server = server;
         this.status = NEW;
         this.sources = sources;
         this.created = LocalDateTime.now();
-    }
-
-    public boolean isActive() {
-        switch (status) {
-            case NEW:
-            case COMPILING:
-            case RUNNING:
-                return true;
-            default:
-                return false;
-        }
     }
 
     public synchronized void setStatus(Status newStatus) {

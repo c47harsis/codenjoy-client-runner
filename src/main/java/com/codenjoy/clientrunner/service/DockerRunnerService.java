@@ -48,7 +48,7 @@ public class DockerRunnerService {
         solutions.stream()
                 .filter(s -> playerId.equals(s.getPlayerId()))
                 .filter(s -> code.equals(s.getCode()))
-                .filter(Solution::isActive)
+                .filter(s -> s.getStatus().isActive())
                 .forEach(this::kill);
     }
 
@@ -71,7 +71,7 @@ public class DockerRunnerService {
         /* TODO: try to avoid copy Dockerfile. https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
         solutions.add(solution);
 
-        if (!solution.isActive()) {
+        if (!solution.getStatus().isActive()) {
             log.debug("Attempt to run inactive solution with id: {} and status: {}", solution.getId(), solution.getStatus());
             return;
         }
@@ -188,7 +188,7 @@ public class DockerRunnerService {
     }
 
     private void kill(Solution solution) {
-        if (!solution.isActive()) {
+        if (!solution.getStatus().isActive()) {
             return;
         }
         solution.setStatus(KILLED);
