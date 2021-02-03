@@ -30,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.codenjoy.clientrunner.model.Status.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -75,7 +77,7 @@ public class DockerRunnerService {
         }
 
         try {
-            solution.setStatus(Solution.Status.COMPILING);
+            solution.setStatus(COMPILING);
             docker.buildImageCmd(solution.getSources())
                     .withBuildArg("CODENJOY_URL", solution.getServer())
                     .exec(new BuildImageResultCallback() {
@@ -108,12 +110,12 @@ public class DockerRunnerService {
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                            if (Solution.Status.KILLED.equals(solution.getStatus())) {
+                            if (KILLED.equals(solution.getStatus())) {
                                 super.onComplete();
                                 return;
                             }
                             solution.setImageId(imageId);
-                            solution.setStatus(Solution.Status.RUNNING);
+                            solution.setStatus(RUNNING);
                             solution.setStarted(LocalDateTime.now());
                             String containerId = docker.createContainerCmd(imageId)
                                     .withHostConfig(hostConfig)
@@ -156,8 +158,8 @@ public class DockerRunnerService {
                                 @Override
                                 public void onComplete() {
                                     solution.setFinished(LocalDateTime.now());
-                                    if (!Solution.Status.KILLED.equals(solution.getStatus())) {
-                                        solution.setStatus(Solution.Status.FINISHED);
+                                    if (!KILLED.equals(solution.getStatus())) {
+                                        solution.setStatus(FINISHED);
                                     }
                                     docker.removeContainerCmd(containerId).withRemoveVolumes(true).exec();
                                     // TODO: remove images
@@ -168,8 +170,8 @@ public class DockerRunnerService {
                         }
                     });
         } catch (Throwable e) {
-            if (!Solution.Status.KILLED.equals(solution.getStatus())) {
-                solution.setStatus(Solution.Status.ERROR);
+            if (!KILLED.equals(solution.getStatus())) {
+                solution.setStatus(ERROR);
             }
         }
     }
@@ -189,7 +191,7 @@ public class DockerRunnerService {
         if (!solution.isActive()) {
             return;
         }
-        solution.setStatus(Solution.Status.KILLED);
+        solution.setStatus(KILLED);
         if (solution.getContainerId() != null) {
             docker.killContainerCmd(solution.getContainerId()).exec();
         }
@@ -215,7 +217,7 @@ public class DockerRunnerService {
             log.debug("java-dockerfile copied from jar");
         } catch (IOException e) {
             log.error("Can not add Dockerfile to solution with id: {}", solution.getId());
-            solution.setStatus(Solution.Status.ERROR);
+            solution.setStatus(ERROR);
         }
     }
 
