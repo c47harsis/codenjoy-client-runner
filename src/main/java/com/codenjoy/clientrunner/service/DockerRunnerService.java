@@ -26,9 +26,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import static com.codenjoy.clientrunner.model.Status.*;
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @Service
@@ -41,9 +41,7 @@ public class DockerRunnerService {
     private final Set<Solution> solutions = ConcurrentHashMap.newKeySet();
 
     private void killLastIfPresent(Server server) {
-        solutions.stream()
-                .filter(s -> server.getPlayerId().equals(s.getPlayerId()))
-                .filter(s -> server.getCode().equals(s.getCode()))
+        getSolutions(server).stream()
                 .filter(s -> s.getStatus().isActive())
                 .forEach(this::kill);
     }
@@ -173,9 +171,7 @@ public class DockerRunnerService {
     }
 
     public void kill(Server server, int solutionId) {
-        solutions.stream()
-                .filter(s -> server.getPlayerId().equals(s.getPlayerId()))
-                .filter(s -> server.getCode().equals(s.getCode()))
+        getSolutions(server).stream()
                 .filter(s -> solutionId == s.getId())
                 .findFirst()
                 .ifPresentOrElse(this::kill, () -> {
@@ -221,26 +217,20 @@ public class DockerRunnerService {
         return solutions.stream()
                 .filter(s -> server.getPlayerId().equals(s.getPlayerId()))
                 .filter(s -> server.getCode().equals(s.getCode()))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     public Solution getSolution(Server server, int solutionId) {
-        Solution solution = solutions.stream()
+        return getSolutions(server).stream()
                 .filter(s -> solutionId == s.getId())
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new);
-
-        if (!server.getPlayerId().equals(solution.getPlayerId())
-                || !server.getCode().equals(solution.getCode())) {
-            throw new IllegalArgumentException();
-        }
-        return solution;
     }
 
     public List<SolutionSummary> getAllSolutionsSummary(Server server) {
         return getSolutions(server).stream()
                 .map(SolutionSummary::new)
                 .sorted(Comparator.comparingInt(SolutionSummary::getId))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 }
