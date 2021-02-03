@@ -105,7 +105,7 @@ public class DockerRunnerService {
                                     .exec().getId();
                             solution.setContainerId(containerId);
 
-                            docker.startContainerCmd(containerId).exec();
+                            docker.startContainer(solution);
 
                             LogWriter writer = new LogWriter(solution, false);
                             docker.logContainerCmd(containerId)

@@ -38,4 +38,8 @@ public class DockerService {
                     }
                 });
     }
+
+    public void startContainer(Solution solution) {
+        docker.startContainerCmd(solution.getContainerId()).exec();
+    }
 }
