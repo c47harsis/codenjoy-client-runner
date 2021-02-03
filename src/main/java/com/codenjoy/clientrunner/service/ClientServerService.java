@@ -44,7 +44,7 @@ public class ClientServerService {
     }
 
     private File getSolutionDirectory(Server server) {
-        return new File(String.format("./%s/%s/%s/%s",
+        return new File(String.format("%s/%s/%s/%s",
                 config.getSolutionFolder().getPath(),
                 server.getPlayerId(), server.getCode(),
                 now()));
@@ -84,7 +84,7 @@ public class ClientServerService {
         try (Stream<String> log = Files.lines(Paths.get(filePath))) {
             return log.skip(offset).collect(Collectors.toList());
         } catch (IOException e) {
-            throw new IllegalStateException();
+            throw new RuntimeException(e);
         }
     }
 
