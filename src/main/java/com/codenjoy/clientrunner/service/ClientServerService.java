@@ -32,10 +32,10 @@ public class ClientServerService {
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern(config.getSolutionFolder().getPattern()))));
 
         // TODO: async
-        Git repo = gitService.clone(checkRequest.getRepoUrl(), directory);
+        Git repo = gitService.clone(checkRequest.getRepo(), directory);
 
         if (repo == null) {
-            throw new IllegalArgumentException("Can not clone repository: " + checkRequest.getRepoUrl());
+            throw new IllegalArgumentException("Can not clone repository: " + checkRequest.getRepo());
         }
 
         dockerRunnerService.runSolution(directory, playerId, code, checkRequest.getServer());

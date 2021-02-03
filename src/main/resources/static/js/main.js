@@ -3,13 +3,13 @@ var logsInterval
 var solutionStatusInterval
 
 $(function () {
-    var { gitUrl, server } = getUrls()
-    if (gitUrl === null || server === null) {
+    var { repo, server } = getUrls()
+    if (repo === null || server === null) {
         $(location).attr('href', '/');
     }
 
     $("#server").text(server)
-    $("#gitUrl").text(gitUrl)
+    $("#repo").text(repo)
 
     $("#editButton").click(function (e) {
         goToIndex()
@@ -28,7 +28,7 @@ function stopSolution(solutionId) {
         url: "stop",
         data: {
             server: getUrls().server,
-            repoUrl: getUrls().gitUrl,
+            repo: getUrls().repo,
             solutionId: solutionId
         },
         dataType: "json",
@@ -44,7 +44,7 @@ function stopSolution(solutionId) {
 
 function getUrls() {
     return {
-        gitUrl: localStorage.getItem('gitUrl'),
+        repo: localStorage.getItem('repo'),
         server: localStorage.getItem('server')
     }
 }
@@ -55,7 +55,7 @@ function goToIndex() {
 
 function sendSolution() {
     var body = {
-        repoUrl: getUrls().gitUrl,
+        repo: getUrls().repo,
         server: getUrls().server
     }
     $.ajax({

@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class CheckRequest {
     private String server;
-    private String repoUrl;
+    private String repo;
 }

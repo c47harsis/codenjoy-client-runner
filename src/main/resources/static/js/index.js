@@ -1,8 +1,8 @@
 $(function () {
-    var gitUrl = localStorage.getItem('gitUrl')
+    var repo = localStorage.getItem('repo')
     var server = localStorage.getItem('server')
-    if (gitUrl !== null) {
-        $("#gitUrl").val(gitUrl)
+    if (repo !== null) {
+        $("#repo").val(repo)
     }
     if (server !== null) {
         $("#server").val(server)
@@ -15,7 +15,7 @@ $(function () {
 
 
 function login() {
-    localStorage.setItem('gitUrl', $("#gitUrl").val())
+    localStorage.setItem('repo', $("#repo").val())
     localStorage.setItem('server', $("#server").val())
     $(location).attr('href', 'main.html')
 }
