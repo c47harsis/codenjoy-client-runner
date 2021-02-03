@@ -35,11 +35,9 @@ import static com.codenjoy.clientrunner.model.Status.*;
 @RequiredArgsConstructor
 public class DockerRunnerService {
 
-    private final DockerConfig dockerConfig;
-
+    private final DockerConfig config;
     private final DockerClient docker = DockerClientBuilder.getInstance().build();
     private HostConfig hostConfig;
-
     private final Set<Solution> solutions = ConcurrentHashMap.newKeySet();
 
     private void killLastIfPresent(Server server) {
@@ -53,9 +51,9 @@ public class DockerRunnerService {
     @PostConstruct
     protected void init() {
         hostConfig = HostConfig.newHostConfig()
-                .withCpuPeriod(dockerConfig.getContainer().getCpuPeriod())
-                .withCpuQuota(dockerConfig.getContainer().getCpuQuota())
-                .withMemory(dockerConfig.getContainer().getMemoryLimitBytes());
+                .withCpuPeriod(config.getContainer().getCpuPeriod())
+                .withCpuQuota(config.getContainer().getCpuQuota())
+                .withMemory(config.getContainer().getMemoryLimitBytes());
     }
 
     // TODO: Refactor this
