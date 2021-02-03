@@ -26,7 +26,7 @@ public class ClientServerService {
         File directory = new File(String.format("./%s/%s/%s/%s",
                 config.getSolutionFolder().getPath(),
                 server.getPlayerId(), server.getCode(),
-                LocalDateTime.now().format(config.getSolutionFolderFormatter())));
+                now()));
 
         // TODO: async
         Git repo = git.clone(request.getRepo(), directory);
@@ -39,6 +39,10 @@ public class ClientServerService {
         docker.runSolution(directory,
                 server.getPlayerId(), server.getCode(),
                 request.getServer());
+    }
+
+    private String now() {
+        return LocalDateTime.now().format(config.getSolutionFolderFormatter());
     }
 
     private Server parse(String url) {
