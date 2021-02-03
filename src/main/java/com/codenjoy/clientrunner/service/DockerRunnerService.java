@@ -31,7 +31,7 @@ public class DockerRunnerService {
 
     private final DockerConfig config;
     private HostConfig hostConfig;
-    private DockerService docker;
+    private final DockerService docker;
     private final Set<Solution> solutions = ConcurrentHashMap.newKeySet();
 
     private void killLastIfPresent(Server server) {
