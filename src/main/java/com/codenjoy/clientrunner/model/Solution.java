@@ -9,8 +9,8 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.codenjoy.clientrunner.model.Status.KILLED;
-import static com.codenjoy.clientrunner.model.Status.NEW;
+import static com.codenjoy.clientrunner.model.Solution.Status.KILLED;
+import static com.codenjoy.clientrunner.model.Solution.Status.NEW;
 
 @Getter
 @Setter
@@ -24,7 +24,7 @@ public class Solution {
     private String playerId;
     private String code;
     private String serverUrl;
-    public volatile Status status;
+    private volatile Status status;
     private LocalDateTime created;
     private LocalDateTime started;
     private LocalDateTime finished;
@@ -47,6 +47,26 @@ public class Solution {
             return;
         }
         status = newStatus;
+    }
+
+    public enum Status {
+
+        NEW(true),
+        COMPILING(true),
+        RUNNING(true),
+        FINISHED(false),
+        ERROR(false),
+        KILLED(false);
+
+        private boolean active;
+
+        Status(boolean active) {
+            this.active = active;
+        }
+
+        public boolean isActive() {
+            return active;
+        }
     }
 
 }

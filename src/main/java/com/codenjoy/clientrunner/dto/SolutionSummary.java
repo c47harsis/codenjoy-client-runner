@@ -13,18 +13,18 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SolutionSummary {
 
-    public static final String HH_MM_SS = "hh:mm:ss";
+    public static final String TIME_PATTERN = "hh:mm:ss";
 
     private int id;
     private String status;
 
-    @JsonFormat(shape = STRING, pattern = HH_MM_SS)
+    @JsonFormat(shape = STRING, pattern = TIME_PATTERN)
     private LocalDateTime created;
 
-    @JsonFormat(shape = STRING, pattern = HH_MM_SS)
+    @JsonFormat(shape = STRING, pattern = TIME_PATTERN)
     private LocalDateTime started;
 
-    @JsonFormat(shape = STRING, pattern = HH_MM_SS)
+    @JsonFormat(shape = STRING, pattern = TIME_PATTERN)
     private LocalDateTime finished;
 
     public SolutionSummary(Solution solution) {

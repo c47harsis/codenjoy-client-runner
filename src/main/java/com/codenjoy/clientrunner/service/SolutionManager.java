@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.codenjoy.clientrunner.model.Status.*;
+import static com.codenjoy.clientrunner.model.Solution.Status.*;
 import static java.util.stream.Collectors.toList;
 
 @Slf4j
