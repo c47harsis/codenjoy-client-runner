@@ -17,8 +17,8 @@ public class ClientServerController {
 
     @PostMapping("/check")
     @ResponseStatus(HttpStatus.OK)
-    void checkNewSolution(@RequestBody CheckRequest checkRequest) {
-        service.checkSolution(checkRequest);
+    void checkNewSolution(@RequestBody CheckRequest request) {
+        service.checkSolution(request);
     }
 
     @GetMapping("/stop")
