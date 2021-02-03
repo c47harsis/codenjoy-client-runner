@@ -3,6 +3,7 @@ package com.codenjoy.clientrunner.service;
 import com.codenjoy.clientrunner.model.Solution;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
+import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import lombok.AllArgsConstructor;
@@ -48,5 +49,26 @@ public class DockerService {
         return docker.createContainerCmd(imageId)
                 .withHostConfig(hostConfig)
                 .exec().getId();
+    }
+
+    public void logContainer(Solution solution, LogWriter writer) {
+        docker.logContainerCmd(solution.getContainerId())
+                .withStdOut(true)
+                .withStdErr(true)
+                .withFollowStream(true)
+                .withTailAll()
+                .exec(new ResultCallback.Adapter<>() {
+
+                    @Override
+                    public void onNext(Frame object) {
+                        writer.write(object);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        writer.close();
+                        super.onComplete();
+                    }
+                });
     }
 }

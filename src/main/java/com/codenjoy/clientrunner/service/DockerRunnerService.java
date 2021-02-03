@@ -4,10 +4,8 @@ import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.model.Server;
 import com.codenjoy.clientrunner.model.Solution;
-import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.model.BuildResponseItem;
-import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -106,24 +104,7 @@ public class DockerRunnerService {
                             docker.startContainer(solution);
 
                             LogWriter writer = new LogWriter(solution, false);
-                            docker.logContainerCmd(containerId)
-                                    .withStdOut(true)
-                                    .withStdErr(true)
-                                    .withFollowStream(true)
-                                    .withTailAll()
-                                    .exec(new ResultCallback.Adapter<Frame>() {
-
-                                        @Override
-                                        public void onNext(Frame object) {
-                                            writer.write(object);
-                                        }
-
-                                        @Override
-                                        public void onComplete() {
-                                            writer.close();
-                                            super.onComplete();
-                                        }
-                                    });
+                            docker.logContainer(solution, writer);
 
                             docker.waitContainer(solution, () -> {
                                 solution.setFinished(LocalDateTime.now());
