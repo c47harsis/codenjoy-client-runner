@@ -22,14 +22,8 @@ public class ClientServerService {
 
     public void checkSolution(CheckRequest request) {
         Server server = parse(request.getServer());
-
-        File directory = new File(String.format("./%s/%s/%s/%s",
-                config.getSolutionFolder().getPath(),
-                server.getPlayerId(), server.getCode(),
-                now()));
-
-        // TODO: async
-        Git repo = git.clone(request.getRepo(), directory);
+        File directory = getSolutionDirectory(server);
+        Git repo = git.clone(request.getRepo(), directory); // TODO: async
 
         if (repo == null) {
             throw new IllegalArgumentException("Can not clone repository: " +
@@ -39,6 +33,13 @@ public class ClientServerService {
         docker.runSolution(directory,
                 server.getPlayerId(), server.getCode(),
                 request.getServer());
+    }
+
+    private File getSolutionDirectory(Server server) {
+        return new File(String.format("./%s/%s/%s/%s",
+                config.getSolutionFolder().getPath(),
+                server.getPlayerId(), server.getCode(),
+                now()));
     }
 
     private String now() {
