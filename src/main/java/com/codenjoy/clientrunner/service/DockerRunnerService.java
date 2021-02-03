@@ -100,9 +100,7 @@ public class DockerRunnerService {
                             solution.setImageId(imageId);
                             solution.setStatus(RUNNING);
                             solution.setStarted(LocalDateTime.now());
-                            String containerId = docker.createContainerCmd(imageId)
-                                    .withHostConfig(hostConfig)
-                                    .exec().getId();
+                            String containerId = docker.createContainer(imageId, hostConfig);
                             solution.setContainerId(containerId);
 
                             docker.startContainer(solution);

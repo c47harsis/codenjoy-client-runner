@@ -3,6 +3,7 @@ package com.codenjoy.clientrunner.service;
 import com.codenjoy.clientrunner.model.Solution;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
+import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -41,5 +42,11 @@ public class DockerService {
 
     public void startContainer(Solution solution) {
         docker.startContainerCmd(solution.getContainerId()).exec();
+    }
+
+    public String createContainer(String imageId, HostConfig hostConfig) {
+        return docker.createContainerCmd(imageId)
+                .withHostConfig(hostConfig)
+                .exec().getId();
     }
 }
