@@ -197,10 +197,13 @@ public class DockerRunnerService {
 
     private void addDockerfile(Solution solution) {
         try {
-            String relative = "dockerfiles/java/Dockerfile";
-
-            File inSource = new File("./" + relative);
             File destination = new File(solution.getSources(), "Dockerfile");
+
+            String relative = "dockerfiles/java/Dockerfile";
+            File inSource = new File("./" + relative);
+            if (!inSource.exists()) {
+                inSource = new File("./client-runner/" + relative);
+            }
             if (inSource.exists()) {
                 FileUtils.copyFile(inSource, destination);
                 log.debug("java-dockerfile copied from sources");
