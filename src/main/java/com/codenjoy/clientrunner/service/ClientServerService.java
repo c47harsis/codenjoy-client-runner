@@ -3,8 +3,8 @@ package com.codenjoy.clientrunner.service;
 import com.codenjoy.clientrunner.config.ClientServerServiceConfig;
 import com.codenjoy.clientrunner.dto.CheckRequest;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
+import com.codenjoy.clientrunner.model.Server;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import org.eclipse.jgit.api.Git;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +26,8 @@ public class ClientServerService {
 
     public void checkSolution(CheckRequest checkRequest) {
         Server playerIdAndCode = extractPlayerIdAndCode(checkRequest.getServer());
-        String playerId = playerIdAndCode.playerId;
-        String code = playerIdAndCode.code;
+        String playerId = playerIdAndCode.getPlayerId();
+        String code = playerIdAndCode.getCode();
 
         File directory = new File(String.format("./%s/%s/%s/%s", config.getSolutionFolder().getPath(), playerId, code,
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern(config.getSolutionFolder().getPattern()))));
@@ -55,32 +55,27 @@ public class ClientServerService {
 
     public void killSolution(String server, int solutionId) {
         Server playerIdAndCode = extractPlayerIdAndCode(server);
-        dockerRunnerService.kill(playerIdAndCode.playerId, playerIdAndCode.code, solutionId);
+        dockerRunnerService.kill(playerIdAndCode.getPlayerId(), playerIdAndCode.getCode(), solutionId);
     }
 
     public List<SolutionSummary> getAllSolutionsSummary(String server) {
         Server playerIdAndCode = extractPlayerIdAndCode(server);
-        return dockerRunnerService.getAllSolutionsSummary(playerIdAndCode.playerId, playerIdAndCode.code);
+        return dockerRunnerService.getAllSolutionsSummary(playerIdAndCode.getPlayerId(), playerIdAndCode.getCode());
     }
 
     public SolutionSummary getSolutionSummary(String server, int solutionId) {
         Server playerIdAndCode = extractPlayerIdAndCode(server);
-        return dockerRunnerService.getSolutionSummary(solutionId, playerIdAndCode.playerId, playerIdAndCode.code);
+        return dockerRunnerService.getSolutionSummary(solutionId, playerIdAndCode.getPlayerId(), playerIdAndCode.getCode());
     }
 
     public List<String> getBuildLogs(String server, int solutionId, int offset) {
         Server playerIdAndCode = extractPlayerIdAndCode(server);
-        return dockerRunnerService.getBuildLogs(solutionId, playerIdAndCode.playerId, playerIdAndCode.code, offset);
+        return dockerRunnerService.getBuildLogs(solutionId, playerIdAndCode.getPlayerId(), playerIdAndCode.getCode(), offset);
     }
 
     public List<String> getRuntimeLogs(String server, int solutionId, int offset) {
         Server playerIdAndCode = extractPlayerIdAndCode(server);
-        return dockerRunnerService.getRuntimeLogs(solutionId, playerIdAndCode.playerId, playerIdAndCode.code, offset);
+        return dockerRunnerService.getRuntimeLogs(solutionId, playerIdAndCode.getPlayerId(), playerIdAndCode.getCode(), offset);
     }
 
-    @Data
-    private final static class Server {
-        private final String playerId;
-        private final String code;
-    }
 }
