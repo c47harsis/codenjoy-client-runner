@@ -23,21 +23,24 @@ public class ClientServerService {
     private final DockerRunnerService dockerRunnerService;
 
     public void checkSolution(CheckRequest checkRequest) {
-        Server playerIdAndCode = extractPlayerIdAndCode(checkRequest.getServer());
-        String playerId = playerIdAndCode.getPlayerId();
-        String code = playerIdAndCode.getCode();
+        Server server = extractPlayerIdAndCode(checkRequest.getServer());
 
-        File directory = new File(String.format("./%s/%s/%s/%s", config.getSolutionFolder().getPath(), playerId, code,
+        File directory = new File(String.format("./%s/%s/%s/%s",
+                config.getSolutionFolder().getPath(),
+                server.getPlayerId(), server.getCode(),
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern(config.getSolutionFolder().getPattern()))));
 
         // TODO: async
         Git repo = gitService.clone(checkRequest.getRepo(), directory);
 
         if (repo == null) {
-            throw new IllegalArgumentException("Can not clone repository: " + checkRequest.getRepo());
+            throw new IllegalArgumentException("Can not clone repository: " +
+                    checkRequest.getRepo());
         }
 
-        dockerRunnerService.runSolution(directory, playerId, code, checkRequest.getServer());
+        dockerRunnerService.runSolution(directory,
+                server.getPlayerId(), server.getCode(),
+                checkRequest.getServer());
     }
 
     private Server extractPlayerIdAndCode(String url) {
