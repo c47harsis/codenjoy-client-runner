@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -27,7 +26,7 @@ public class ClientServerService {
         File directory = new File(String.format("./%s/%s/%s/%s",
                 config.getSolutionFolder().getPath(),
                 server.getPlayerId(), server.getCode(),
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern(config.getSolutionFolder().getPattern()))));
+                LocalDateTime.now().format(config.getSolutionFolderFormatter())));
 
         // TODO: async
         Git repo = git.clone(request.getRepo(), directory);
