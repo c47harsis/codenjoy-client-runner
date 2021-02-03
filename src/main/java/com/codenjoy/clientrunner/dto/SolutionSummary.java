@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SolutionSummaryDto {
+public class SolutionSummary {
     private Integer id;
     private String status;
 
@@ -22,8 +22,8 @@ public class SolutionSummaryDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "hh:mm:ss")
     private LocalDateTime finished;
 
-    public static SolutionSummaryDto fromSolution(Solution solution) {
-        SolutionSummaryDto summary = new SolutionSummaryDto();
+    public static SolutionSummary fromSolution(Solution solution) {
+        SolutionSummary summary = new SolutionSummary();
         summary.setCreated(solution.getCreated());
         summary.setFinished(solution.getFinished());
         summary.setId(solution.getId());

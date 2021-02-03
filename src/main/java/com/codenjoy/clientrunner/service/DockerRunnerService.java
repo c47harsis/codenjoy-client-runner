@@ -2,7 +2,7 @@ package com.codenjoy.clientrunner.service;
 
 import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.model.Solution;
-import com.codenjoy.clientrunner.dto.SolutionSummaryDto;
+import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
@@ -238,16 +238,16 @@ public class DockerRunnerService {
         return solution;
     }
 
-    public List<SolutionSummaryDto> getAllSolutionsSummary(String playerId, String code) {
+    public List<SolutionSummary> getAllSolutionsSummary(String playerId, String code) {
         return getSolutions(playerId, code).stream()
-                .map(SolutionSummaryDto::fromSolution)
-                .sorted(Comparator.comparingInt(SolutionSummaryDto::getId))
+                .map(SolutionSummary::fromSolution)
+                .sorted(Comparator.comparingInt(SolutionSummary::getId))
                 .collect(Collectors.toList());
     }
 
-    public SolutionSummaryDto getSolutionSummary(int solutionId, String playerId, String code) {
+    public SolutionSummary getSolutionSummary(int solutionId, String playerId, String code) {
         Solution solution = getSolution(playerId, code, solutionId);
-        return SolutionSummaryDto.fromSolution(solution);
+        return SolutionSummary.fromSolution(solution);
     }
 
     public List<String> getBuildLogs(int solutionId, String playerId, String code, int offset) {

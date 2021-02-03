@@ -2,7 +2,7 @@ package com.codenjoy.clientrunner.service;
 
 import com.codenjoy.clientrunner.config.ClientServerServiceConfig;
 import com.codenjoy.clientrunner.dto.CheckRequest;
-import com.codenjoy.clientrunner.dto.SolutionSummaryDto;
+import com.codenjoy.clientrunner.dto.SolutionSummary;
 import lombok.AllArgsConstructor;
 import org.eclipse.jgit.api.Git;
 import org.springframework.stereotype.Service;
@@ -57,12 +57,12 @@ public class ClientServerService {
         dockerRunnerService.kill(playerIdAndCode.first, playerIdAndCode.second, solutionId);
     }
 
-    public List<SolutionSummaryDto> getAllSolutionsSummary(String server) {
+    public List<SolutionSummary> getAllSolutionsSummary(String server) {
         Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
         return dockerRunnerService.getAllSolutionsSummary(playerIdAndCode.first, playerIdAndCode.second);
     }
 
-    public SolutionSummaryDto getSolutionSummary(String server, int solutionId) {
+    public SolutionSummary getSolutionSummary(String server, int solutionId) {
         Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
         return dockerRunnerService.getSolutionSummary(solutionId, playerIdAndCode.first, playerIdAndCode.second);
     }
