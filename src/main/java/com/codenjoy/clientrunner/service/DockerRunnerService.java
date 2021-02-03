@@ -60,8 +60,8 @@ public class DockerRunnerService {
 
     // TODO: Refactor this
     @SneakyThrows
-    public void runSolution(File sources, String playerId, String code, String codenjoyUrl) {
-        Solution solution = new Solution(playerId, code, codenjoyUrl, sources);
+    public void runSolution(File sources, String playerId, String code, String server) {
+        Solution solution = new Solution(playerId, code, server, sources);
         addDockerfile(solution);
 
         killLastIfPresent(playerId, code);
@@ -77,7 +77,7 @@ public class DockerRunnerService {
         try {
             solution.setStatus(Solution.Status.COMPILING);
             docker.buildImageCmd(solution.getSources())
-                    .withBuildArg("CODENJOY_URL", solution.getCodenjoyUrl())
+                    .withBuildArg("CODENJOY_URL", solution.getServer())
                     .exec(new BuildImageResultCallback() {
                         private final Writer writer = new BufferedWriter(new FileWriter(solution.getSources() + "/build.log"));
                         private String imageId;

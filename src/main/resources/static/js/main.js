@@ -3,12 +3,12 @@ var logsInterval
 var solutionStatusInterval
 
 $(function () {
-    var { gitUrl, codenjoyUrl } = getUrls()
-    if (gitUrl === null || codenjoyUrl === null) {
+    var { gitUrl, server } = getUrls()
+    if (gitUrl === null || server === null) {
         $(location).attr('href', '/');
     }
 
-    $("#codenjoyUrl").text(codenjoyUrl)
+    $("#server").text(server)
     $("#gitUrl").text(gitUrl)
 
     $("#editButton").click(function (e) {
@@ -27,7 +27,7 @@ function stopSolution(solutionId) {
         type: "get",
         url: "stop",
         data: {
-            codenjoyUrl: getUrls().codenjoyUrl,
+            server: getUrls().server,
             repoUrl: getUrls().gitUrl,
             solutionId: solutionId
         },
@@ -45,7 +45,7 @@ function stopSolution(solutionId) {
 function getUrls() {
     return {
         gitUrl: localStorage.getItem('gitUrl'),
-        codenjoyUrl: localStorage.getItem('codenjoyUrl')
+        server: localStorage.getItem('server')
     }
 }
 
@@ -56,7 +56,7 @@ function goToIndex() {
 function sendSolution() {
     var body = {
         repoUrl: getUrls().gitUrl,
-        codenjoyUrl: getUrls().codenjoyUrl
+        server: getUrls().server
     }
     $.ajax({
         type: "post",
@@ -75,7 +75,7 @@ function getSolutions() {
         type: "get",
         url: "all",
         data: {
-            codenjoyUrl: getUrls().codenjoyUrl
+            server: getUrls().server
         },
         dataType: "json",
         contentType: "application/json",
@@ -175,7 +175,7 @@ function fetchSolutionStatus(solutionId) {
         url: "summary",
         data: {
             solutionId: solutionId,
-            codenjoyUrl: getUrls().codenjoyUrl
+            server: getUrls().server
         },
         dataType: "json",
         contentType: "application/json",
@@ -204,7 +204,7 @@ function fetchRuntimeLogs(solutionId) {
         type: "get",
         url: "runtime_logs",
         data: {
-            codenjoyUrl: getUrls().codenjoyUrl,
+            server: getUrls().server,
             solutionId: solutionId,
             startFromLine: linesCount
         },

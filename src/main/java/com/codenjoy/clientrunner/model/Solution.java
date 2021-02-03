@@ -19,7 +19,7 @@ public class Solution {
     private Integer id;
     private String playerId;
     private String code;
-    private String codenjoyUrl;
+    private String server;
     private volatile Status status;
     private LocalDateTime created;
     private LocalDateTime started;
@@ -28,11 +28,11 @@ public class Solution {
     private String imageId;
     private File sources;
 
-    public Solution(String playerId, String code, String codenjoyUrl, File sources) {
+    public Solution(String playerId, String code, String server, File sources) {
         this.id = Solution.idCounter.incrementAndGet();
         this.playerId = playerId;
         this.code = code;
-        this.codenjoyUrl = codenjoyUrl;
+        this.server = server;
         this.status = Status.NEW;
         this.sources = sources;
         this.created = LocalDateTime.now();

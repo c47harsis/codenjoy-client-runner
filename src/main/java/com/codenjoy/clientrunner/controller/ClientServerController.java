@@ -23,29 +23,29 @@ public class ClientServerController {
 
     @GetMapping("/stop")
     @ResponseStatus(HttpStatus.OK)
-    void stopSolution(@RequestParam String codenjoyUrl, @RequestParam Integer solutionId) {
-        service.killSolution(codenjoyUrl, solutionId);
+    void stopSolution(@RequestParam String server, @RequestParam Integer solutionId) {
+        service.killSolution(server, solutionId);
     }
 
     @GetMapping("/all")
-    ResponseEntity<?> getAllSolutions(@RequestParam String codenjoyUrl) {
-        return ok(service.getAllSolutionsSummary(codenjoyUrl));
+    ResponseEntity<?> getAllSolutions(@RequestParam String server) {
+        return ok(service.getAllSolutionsSummary(server));
     }
 
     @GetMapping("/summary")
-    ResponseEntity<?> getSolutionSummary(@RequestParam Integer solutionId, @RequestParam String codenjoyUrl) {
-        return ok(service.getSolutionSummary(codenjoyUrl, solutionId));
+    ResponseEntity<?> getSolutionSummary(@RequestParam Integer solutionId, @RequestParam String server) {
+        return ok(service.getSolutionSummary(server, solutionId));
     }
 
     @GetMapping("/runtime_logs")
-    ResponseEntity<?> getRuntimeLogs(@RequestParam Integer solutionId, @RequestParam String codenjoyUrl,
+    ResponseEntity<?> getRuntimeLogs(@RequestParam Integer solutionId, @RequestParam String server,
                                      @RequestParam(defaultValue = "0") Integer startFromLine) {
-        return ok(service.getRuntimeLogs(codenjoyUrl, solutionId, startFromLine));
+        return ok(service.getRuntimeLogs(server, solutionId, startFromLine));
     }
 
     @GetMapping("/build_logs")
-    ResponseEntity<?> getBuildLogs(@RequestParam Integer solutionId, @RequestParam String codenjoyUrl,
+    ResponseEntity<?> getBuildLogs(@RequestParam Integer solutionId, @RequestParam String server,
                                    @RequestParam(defaultValue = "0") Integer startFromLine) {
-        return ok(service.getBuildLogs(codenjoyUrl, solutionId, startFromLine));
+        return ok(service.getBuildLogs(server, solutionId, startFromLine));
     }
 }

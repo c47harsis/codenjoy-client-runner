@@ -1,11 +1,11 @@
 $(function () {
     var gitUrl = localStorage.getItem('gitUrl')
-    var codenjoyUrl = localStorage.getItem('codenjoyUrl')
+    var server = localStorage.getItem('server')
     if (gitUrl !== null) {
         $("#gitUrl").val(gitUrl)
     }
-    if (codenjoyUrl !== null) {
-        $("#codenjoyUrl").val(codenjoyUrl)
+    if (server !== null) {
+        $("#server").val(server)
     }
 
     $('#btnsubmit').click(function (e) {
@@ -16,6 +16,6 @@ $(function () {
 
 function login() {
     localStorage.setItem('gitUrl', $("#gitUrl").val())
-    localStorage.setItem('codenjoyUrl', $("#codenjoyUrl").val())
+    localStorage.setItem('server', $("#server").val())
     $(location).attr('href', 'main.html')
 }

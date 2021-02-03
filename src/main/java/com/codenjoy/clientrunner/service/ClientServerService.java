@@ -24,7 +24,7 @@ public class ClientServerService {
     private final DockerRunnerService dockerRunnerService;
 
     public void checkSolution(CheckRequest checkRequest) {
-        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(checkRequest.getCodenjoyUrl());
+        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(checkRequest.getServer());
         String playerId = playerIdAndCode.first;
         String code = playerIdAndCode.second;
 
@@ -38,42 +38,42 @@ public class ClientServerService {
             throw new IllegalArgumentException("Can not clone repository: " + checkRequest.getRepoUrl());
         }
 
-        dockerRunnerService.runSolution(directory, playerId, code, checkRequest.getCodenjoyUrl());
+        dockerRunnerService.runSolution(directory, playerId, code, checkRequest.getServer());
     }
 
     private Pair<String, String> extractPlayerIdAndCode(String url) {
-        Pattern serverUrlPattern = Pattern.compile(config.getCodenjoyUrlRegex());
+        Pattern serverUrlPattern = Pattern.compile(config.getServerRegex());
         Matcher matcher = serverUrlPattern.matcher(url);
         if (!matcher.matches()) {
             throw new IllegalArgumentException(
                     String.format("Given invalid server URL: '%s' is not match '%s'",
-                            url, config.getCodenjoyUrlRegex()));
+                            url, config.getServerRegex()));
         }
         return new Pair<>(matcher.group(1), matcher.group(2));
     }
 
-    public void killSolution(String codenjoyUrl, Integer solutionId) {
-        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(codenjoyUrl);
+    public void killSolution(String server, Integer solutionId) {
+        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
         dockerRunnerService.kill(playerIdAndCode.first, playerIdAndCode.second, solutionId);
     }
 
-    public List<SolutionSummaryDto> getAllSolutionsSummary(String codenjoyUrl) {
-        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(codenjoyUrl);
+    public List<SolutionSummaryDto> getAllSolutionsSummary(String server) {
+        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
         return dockerRunnerService.getAllSolutionsSummary(playerIdAndCode.first, playerIdAndCode.second);
     }
 
-    public SolutionSummaryDto getSolutionSummary(String codenjoyUrl, Integer solutionId) {
-        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(codenjoyUrl);
+    public SolutionSummaryDto getSolutionSummary(String server, Integer solutionId) {
+        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
         return dockerRunnerService.getSolutionSummary(solutionId, playerIdAndCode.first, playerIdAndCode.second);
     }
 
-    public List<String> getBuildLogs(String codenjoyUrl, Integer solutionId, Integer startFromLine) {
-        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(codenjoyUrl);
+    public List<String> getBuildLogs(String server, Integer solutionId, Integer startFromLine) {
+        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
         return dockerRunnerService.getBuildLogs(solutionId, playerIdAndCode.first, playerIdAndCode.second, startFromLine);
     }
 
-    public List<String> getRuntimeLogs(String codenjoyUrl, Integer solutionId, Integer startFromLine) {
-        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(codenjoyUrl);
+    public List<String> getRuntimeLogs(String server, Integer solutionId, Integer startFromLine) {
+        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
         return dockerRunnerService.getRuntimeLogs(solutionId, playerIdAndCode.first, playerIdAndCode.second, startFromLine);
     }
 

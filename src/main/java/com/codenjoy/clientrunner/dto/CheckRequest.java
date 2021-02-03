@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class CheckRequest {
-    private String codenjoyUrl;
+    private String server;
     private String repoUrl;
 }
