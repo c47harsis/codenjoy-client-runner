@@ -1,4 +1,4 @@
-package com.codenjoy.clientrunner.service;
+package com.codenjoy.clientrunner.service.facade;
 
 import com.codenjoy.clientrunner.model.Solution;
 import com.github.dockerjava.api.DockerClient;

@@ -5,6 +5,7 @@ import com.codenjoy.clientrunner.dto.CheckRequest;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.model.Server;
 import com.codenjoy.clientrunner.model.Solution;
+import com.codenjoy.clientrunner.service.facade.GitService;
 import lombok.AllArgsConstructor;
 import org.eclipse.jgit.api.Git;
 import org.springframework.stereotype.Service;
@@ -18,8 +19,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.codenjoy.clientrunner.service.LogWriter.APP_LOG;
-import static com.codenjoy.clientrunner.service.LogWriter.BUILD_LOG;
+import static com.codenjoy.clientrunner.service.facade.LogWriter.APP_LOG;
+import static com.codenjoy.clientrunner.service.facade.LogWriter.BUILD_LOG;
 
 @Service
 @AllArgsConstructor

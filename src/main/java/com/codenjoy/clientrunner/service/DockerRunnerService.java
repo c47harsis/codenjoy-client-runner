@@ -4,6 +4,8 @@ import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.model.Server;
 import com.codenjoy.clientrunner.model.Solution;
+import com.codenjoy.clientrunner.service.facade.DockerService;
+import com.codenjoy.clientrunner.service.facade.LogWriter;
 import com.github.dockerjava.api.model.HostConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;

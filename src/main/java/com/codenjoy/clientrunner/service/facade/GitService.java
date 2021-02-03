@@ -1,4 +1,4 @@
-package com.codenjoy.clientrunner.service;
+package com.codenjoy.clientrunner.service.facade;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
