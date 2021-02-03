@@ -4,6 +4,7 @@ import com.codenjoy.clientrunner.config.ClientServerServiceConfig;
 import com.codenjoy.clientrunner.dto.CheckRequest;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.eclipse.jgit.api.Git;
 import org.springframework.stereotype.Service;
 
@@ -24,9 +25,9 @@ public class ClientServerService {
     private final DockerRunnerService dockerRunnerService;
 
     public void checkSolution(CheckRequest checkRequest) {
-        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(checkRequest.getServer());
-        String playerId = playerIdAndCode.first;
-        String code = playerIdAndCode.second;
+        Server playerIdAndCode = extractPlayerIdAndCode(checkRequest.getServer());
+        String playerId = playerIdAndCode.playerId;
+        String code = playerIdAndCode.code;
 
         File directory = new File(String.format("./%s/%s/%s/%s", config.getSolutionFolder().getPath(), playerId, code,
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern(config.getSolutionFolder().getPattern()))));
@@ -41,7 +42,7 @@ public class ClientServerService {
         dockerRunnerService.runSolution(directory, playerId, code, checkRequest.getServer());
     }
 
-    private Pair<String, String> extractPlayerIdAndCode(String url) {
+    private Server extractPlayerIdAndCode(String url) {
         Pattern serverUrlPattern = Pattern.compile(config.getServerRegex());
         Matcher matcher = serverUrlPattern.matcher(url);
         if (!matcher.matches()) {
@@ -49,37 +50,37 @@ public class ClientServerService {
                     String.format("Given invalid server URL: '%s' is not match '%s'",
                             url, config.getServerRegex()));
         }
-        return new Pair<>(matcher.group(1), matcher.group(2));
+        return new Server(matcher.group(1), matcher.group(2));
     }
 
     public void killSolution(String server, int solutionId) {
-        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
-        dockerRunnerService.kill(playerIdAndCode.first, playerIdAndCode.second, solutionId);
+        Server playerIdAndCode = extractPlayerIdAndCode(server);
+        dockerRunnerService.kill(playerIdAndCode.playerId, playerIdAndCode.code, solutionId);
     }
 
     public List<SolutionSummary> getAllSolutionsSummary(String server) {
-        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
-        return dockerRunnerService.getAllSolutionsSummary(playerIdAndCode.first, playerIdAndCode.second);
+        Server playerIdAndCode = extractPlayerIdAndCode(server);
+        return dockerRunnerService.getAllSolutionsSummary(playerIdAndCode.playerId, playerIdAndCode.code);
     }
 
     public SolutionSummary getSolutionSummary(String server, int solutionId) {
-        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
-        return dockerRunnerService.getSolutionSummary(solutionId, playerIdAndCode.first, playerIdAndCode.second);
+        Server playerIdAndCode = extractPlayerIdAndCode(server);
+        return dockerRunnerService.getSolutionSummary(solutionId, playerIdAndCode.playerId, playerIdAndCode.code);
     }
 
     public List<String> getBuildLogs(String server, int solutionId, int offset) {
-        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
-        return dockerRunnerService.getBuildLogs(solutionId, playerIdAndCode.first, playerIdAndCode.second, offset);
+        Server playerIdAndCode = extractPlayerIdAndCode(server);
+        return dockerRunnerService.getBuildLogs(solutionId, playerIdAndCode.playerId, playerIdAndCode.code, offset);
     }
 
     public List<String> getRuntimeLogs(String server, int solutionId, int offset) {
-        Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
-        return dockerRunnerService.getRuntimeLogs(solutionId, playerIdAndCode.first, playerIdAndCode.second, offset);
+        Server playerIdAndCode = extractPlayerIdAndCode(server);
+        return dockerRunnerService.getRuntimeLogs(solutionId, playerIdAndCode.playerId, playerIdAndCode.code, offset);
     }
 
-    @AllArgsConstructor
-    private final static class Pair<F, S> {
-        private final F first;
-        private final S second;
+    @Data
+    private final static class Server {
+        private final String playerId;
+        private final String code;
     }
 }
