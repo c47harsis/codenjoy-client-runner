@@ -240,14 +240,14 @@ public class DockerRunnerService {
 
     public List<SolutionSummary> getAllSolutionsSummary(String playerId, String code) {
         return getSolutions(playerId, code).stream()
-                .map(SolutionSummary::fromSolution)
+                .map(SolutionSummary::new)
                 .sorted(Comparator.comparingInt(SolutionSummary::getId))
                 .collect(Collectors.toList());
     }
 
     public SolutionSummary getSolutionSummary(int solutionId, String playerId, String code) {
         Solution solution = getSolution(playerId, code, solutionId);
-        return SolutionSummary.fromSolution(solution);
+        return new SolutionSummary(solution);
     }
 
     public List<String> getBuildLogs(int solutionId, String playerId, String code, int offset) {

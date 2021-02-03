@@ -23,13 +23,11 @@ public class SolutionSummary {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "hh:mm:ss")
     private LocalDateTime finished;
 
-    public static SolutionSummary fromSolution(Solution solution) {
-        SolutionSummary summary = new SolutionSummary();
-        summary.setCreated(solution.getCreated());
-        summary.setFinished(solution.getFinished());
-        summary.setId(solution.getId());
-        summary.setStarted(solution.getStarted());
-        summary.setStatus(solution.getStatus().toString());
-        return summary;
+    public SolutionSummary(Solution solution) {
+        created = solution.getCreated();
+        finished = solution.getFinished();
+        id = solution.getId();
+        started = solution.getStarted();
+        status = solution.getStatus().toString();
     }
 }
