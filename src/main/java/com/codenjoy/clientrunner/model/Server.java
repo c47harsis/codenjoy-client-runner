@@ -2,6 +2,7 @@ package com.codenjoy.clientrunner.model;
 
 import lombok.Data;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,4 +25,10 @@ public final class Server {
         playerId = matcher.group(1);
         code = matcher.group(2);
     }
+
+    public boolean applicable(Solution solution) {
+        return Objects.equals(playerId, solution.getPlayerId())
+                && Objects.equals(code, solution.getCode());
+    }
+
 }

@@ -104,7 +104,7 @@ public class DockerRunnerService {
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                            if (KILLED.equals(solution.getStatus())) {
+                            if (solution.getStatus() == KILLED) {
                                 super.onComplete();
                                 return;
                             }
@@ -152,7 +152,7 @@ public class DockerRunnerService {
                                 @Override
                                 public void onComplete() {
                                     solution.setFinished(LocalDateTime.now());
-                                    if (!KILLED.equals(solution.getStatus())) {
+                                    if (solution.getStatus() == KILLED) {
                                         solution.setStatus(FINISHED);
                                     }
                                     docker.removeContainerCmd(containerId).withRemoveVolumes(true).exec();
@@ -210,8 +210,7 @@ public class DockerRunnerService {
 
     public List<Solution> getSolutions(Server server) {
         return solutions.stream()
-                .filter(s -> server.getPlayerId().equals(s.getPlayerId()))
-                .filter(s -> server.getCode().equals(s.getCode()))
+                .filter(server::applicable)
                 .collect(toList());
     }
 
