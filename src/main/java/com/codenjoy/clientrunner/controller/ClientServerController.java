@@ -13,39 +13,39 @@ import static org.springframework.http.ResponseEntity.*;
 @AllArgsConstructor
 public class ClientServerController {
 
-    private final ClientServerService clientServerService;
+    private final ClientServerService service;
 
     @PostMapping("/check")
     @ResponseStatus(HttpStatus.OK)
     void checkNewSolution(@RequestBody CheckRequest checkRequest) {
-        clientServerService.checkSolution(checkRequest);
+        service.checkSolution(checkRequest);
     }
 
     @GetMapping("/stop")
     @ResponseStatus(HttpStatus.OK)
     void stopSolution(@RequestParam String codenjoyUrl, @RequestParam Integer solutionId) {
-        clientServerService.killSolution(codenjoyUrl, solutionId);
+        service.killSolution(codenjoyUrl, solutionId);
     }
 
     @GetMapping("/all")
     ResponseEntity<?> getAllSolutions(@RequestParam String codenjoyUrl) {
-        return ok(clientServerService.getAllSolutionsSummary(codenjoyUrl));
+        return ok(service.getAllSolutionsSummary(codenjoyUrl));
     }
 
     @GetMapping("/summary")
     ResponseEntity<?> getSolutionSummary(@RequestParam Integer solutionId, @RequestParam String codenjoyUrl) {
-        return ok(clientServerService.getSolutionSummary(codenjoyUrl, solutionId));
+        return ok(service.getSolutionSummary(codenjoyUrl, solutionId));
     }
 
     @GetMapping("/runtime_logs")
     ResponseEntity<?> getRuntimeLogs(@RequestParam Integer solutionId, @RequestParam String codenjoyUrl,
                                      @RequestParam(defaultValue = "0") Integer startFromLine) {
-        return ok(clientServerService.getRuntimeLogs(codenjoyUrl, solutionId, startFromLine));
+        return ok(service.getRuntimeLogs(codenjoyUrl, solutionId, startFromLine));
     }
 
     @GetMapping("/build_logs")
     ResponseEntity<?> getBuildLogs(@RequestParam Integer solutionId, @RequestParam String codenjoyUrl,
                                    @RequestParam(defaultValue = "0") Integer startFromLine) {
-        return ok(clientServerService.getBuildLogs(codenjoyUrl, solutionId, startFromLine));
+        return ok(service.getBuildLogs(codenjoyUrl, solutionId, startFromLine));
     }
 }
