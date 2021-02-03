@@ -1,11 +1,11 @@
 $(function () {
     var repo = localStorage.getItem('repo')
-    var server = localStorage.getItem('server')
+    var serverUrl = localStorage.getItem('serverUrl')
     if (repo !== null) {
         $("#repo").val(repo)
     }
-    if (server !== null) {
-        $("#server").val(server)
+    if (serverUrl !== null) {
+        $("#serverUrl").val(serverUrl)
     }
 
     $('#btnsubmit').click(function (e) {
@@ -16,6 +16,6 @@ $(function () {
 
 function login() {
     localStorage.setItem('repo', $("#repo").val())
-    localStorage.setItem('server', $("#server").val())
+    localStorage.setItem('serverUrl', $("#serverUrl").val())
     $(location).attr('href', 'main.html')
 }

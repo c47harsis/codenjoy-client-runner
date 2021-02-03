@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static org.springframework.http.ResponseEntity.*;
+import static org.springframework.http.ResponseEntity.ok;
 
 @RestController("/solutions")
 @AllArgsConstructor
@@ -23,29 +23,29 @@ public class ClientServerController {
 
     @GetMapping("/stop")
     @ResponseStatus(HttpStatus.OK)
-    void stopSolution(@RequestParam String server, @RequestParam int solutionId) {
-        service.killSolution(server, solutionId);
+    void stopSolution(@RequestParam String serverUrl, @RequestParam int solutionId) {
+        service.killSolution(serverUrl, solutionId);
     }
 
     @GetMapping("/all")
-    ResponseEntity<?> getAllSolutions(@RequestParam String server) {
-        return ok(service.getAllSolutionsSummary(server));
+    ResponseEntity<?> getAllSolutions(@RequestParam String serverUrl) {
+        return ok(service.getAllSolutionsSummary(serverUrl));
     }
 
     @GetMapping("/summary")
-    ResponseEntity<?> getSolutionSummary(@RequestParam int solutionId, @RequestParam String server) {
-        return ok(service.getSolutionSummary(server, solutionId));
+    ResponseEntity<?> getSolutionSummary(@RequestParam int solutionId, @RequestParam String serverUrl) {
+        return ok(service.getSolutionSummary(serverUrl, solutionId));
     }
 
     @GetMapping("/runtime_logs")
-    ResponseEntity<?> getRuntimeLogs(@RequestParam int solutionId, @RequestParam String server,
+    ResponseEntity<?> getRuntimeLogs(@RequestParam int solutionId, @RequestParam String serverUrl,
                                      @RequestParam(defaultValue = "0") int offset) {
-        return ok(service.getRuntimeLogs(server, solutionId, offset));
+        return ok(service.getRuntimeLogs(serverUrl, solutionId, offset));
     }
 
     @GetMapping("/build_logs")
-    ResponseEntity<?> getBuildLogs(@RequestParam int solutionId, @RequestParam String server,
+    ResponseEntity<?> getBuildLogs(@RequestParam int solutionId, @RequestParam String serverUrl,
                                    @RequestParam(defaultValue = "0") int offset) {
-        return ok(service.getBuildLogs(server, solutionId, offset));
+        return ok(service.getBuildLogs(serverUrl, solutionId, offset));
     }
 }

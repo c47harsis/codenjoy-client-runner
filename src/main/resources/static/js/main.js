@@ -3,12 +3,12 @@ var logsInterval
 var solutionStatusInterval
 
 $(function () {
-    var { repo, server } = getUrls()
-    if (repo === null || server === null) {
+    var { repo, serverUrl } = getUrls()
+    if (repo === null || serverUrl === null) {
         $(location).attr('href', '/');
     }
 
-    $("#server").text(server)
+    $("#serverUrl").text(serverUrl)
     $("#repo").text(repo)
 
     $("#editButton").click(function (e) {
@@ -27,7 +27,7 @@ function stopSolution(solutionId) {
         type: "get",
         url: "stop",
         data: {
-            server: getUrls().server,
+            serverUrl: getUrls().serverUrl,
             repo: getUrls().repo,
             solutionId: solutionId
         },
@@ -45,7 +45,7 @@ function stopSolution(solutionId) {
 function getUrls() {
     return {
         repo: localStorage.getItem('repo'),
-        server: localStorage.getItem('server')
+        serverUrl: localStorage.getItem('serverUrl')
     }
 }
 
@@ -56,7 +56,7 @@ function goToIndex() {
 function sendSolution() {
     var body = {
         repo: getUrls().repo,
-        server: getUrls().server
+        serverUrl: getUrls().serverUrl
     }
     $.ajax({
         type: "post",
@@ -75,7 +75,7 @@ function getSolutions() {
         type: "get",
         url: "all",
         data: {
-            server: getUrls().server
+            serverUrl: getUrls().serverUrl
         },
         dataType: "json",
         contentType: "application/json",
@@ -142,7 +142,6 @@ function hideSolutionInfo() {
 }
 
 function showSolutionInfo(solutionId) {
-    console.log("skoka")
     $('#solutionInfo').show();
 
     $('#logField').empty();
@@ -175,7 +174,7 @@ function fetchSolutionStatus(solutionId) {
         url: "summary",
         data: {
             solutionId: solutionId,
-            server: getUrls().server
+            serverUrl: getUrls().serverUrl
         },
         dataType: "json",
         contentType: "application/json",
@@ -204,7 +203,7 @@ function fetchRuntimeLogs(solutionId) {
         type: "get",
         url: "runtime_logs",
         data: {
-            server: getUrls().server,
+            serverUrl: getUrls().serverUrl,
             solutionId: solutionId,
             offset: linesCount
         },

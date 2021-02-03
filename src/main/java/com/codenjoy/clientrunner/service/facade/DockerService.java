@@ -59,7 +59,7 @@ public class DockerService {
 
     public void buildImage(Solution solution, LogWriter writer, Consumer<String> onCompete) {
         docker.buildImageCmd(solution.getSources())
-                .withBuildArg(SERVER_PARAMETER, solution.getServer())
+                .withBuildArg(SERVER_PARAMETER, solution.getServerUrl())
                 .exec(new BuildImageResultCallback() {
                     private String imageId;
                     private String error;

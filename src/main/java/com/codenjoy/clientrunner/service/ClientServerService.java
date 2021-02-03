@@ -3,8 +3,8 @@ package com.codenjoy.clientrunner.service;
 import com.codenjoy.clientrunner.config.ClientServerServiceConfig;
 import com.codenjoy.clientrunner.dto.CheckRequest;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
-import com.codenjoy.clientrunner.model.Server;
 import com.codenjoy.clientrunner.model.Solution;
+import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.GitService;
 import lombok.AllArgsConstructor;
 import org.eclipse.jgit.api.Git;
@@ -28,11 +28,11 @@ public class ClientServerService {
 
     private final ClientServerServiceConfig config;
     private final GitService git;
-    private final DockerRunnerService docker;
+    private final SolutionManager solutionManager;
 
     public void checkSolution(CheckRequest request) {
-        Server server = parse(request.getServer());
-        File directory = getSolutionDirectory(server);
+        Token token = parse(request.getServerUrl());
+        File directory = getSolutionDirectory(token);
 
         Git repo = git.clone(request.getRepo(), directory); // TODO: async
         if (repo == null) {
@@ -40,13 +40,13 @@ public class ClientServerService {
                     request.getRepo());
         }
 
-        docker.runSolution(server, directory);
+        solutionManager.runSolution(token, directory);
     }
 
-    private File getSolutionDirectory(Server server) {
+    private File getSolutionDirectory(Token token) {
         return new File(String.format("%s/%s/%s/%s",
                 config.getSolutionFolder().getPath(),
-                server.getPlayerId(), server.getCode(),
+                token.getPlayerId(), token.getCode(),
                 now()));
     }
 
@@ -54,29 +54,34 @@ public class ClientServerService {
         return LocalDateTime.now().format(config.getSolutionFolderFormatter());
     }
 
-    private Server parse(String url) {
-        return new Server(url, config.getServerRegex());
+    private Token parse(String serverUrl) {
+        return new Token(serverUrl, config.getServerRegex());
     }
 
-    public void killSolution(String server, int solutionId) {
-        docker.kill(parse(server), solutionId);
+    public void killSolution(String serverUrl, int solutionId) {
+        Token token = parse(serverUrl);
+        solutionManager.kill(token, solutionId);
     }
 
-    public List<SolutionSummary> getAllSolutionsSummary(String server) {
-        return docker.getAllSolutionsSummary(parse(server));
+    public List<SolutionSummary> getAllSolutionsSummary(String serverUrl) {
+        Token token = parse(serverUrl);
+        return solutionManager.getAllSolutionsSummary(token);
     }
 
-    public SolutionSummary getSolutionSummary(String server, int solutionId) {
-        return new SolutionSummary(docker.getSolution(parse(server), solutionId));
+    public SolutionSummary getSolutionSummary(String serverUrl, int solutionId) {
+        Token token = parse(serverUrl);
+        return new SolutionSummary(solutionManager.getSolution(token, solutionId));
     }
 
-    public List<String> getBuildLogs(String server, int solutionId, int offset) {
-        Solution solution = docker.getSolution(parse(server), solutionId);
+    public List<String> getBuildLogs(String serverUrl, int solutionId, int offset) {
+        Token token = parse(serverUrl);
+        Solution solution = solutionManager.getSolution(token, solutionId);
         return readFile(solution.getSources() + BUILD_LOG, offset);
     }
 
-    public List<String> getRuntimeLogs(String server, int solutionId, int offset) {
-        Solution solution = docker.getSolution(parse(server), solutionId);
+    public List<String> getRuntimeLogs(String serverUrl, int solutionId, int offset) {
+        Token token = parse(serverUrl);
+        Solution solution = solutionManager.getSolution(token, solutionId);
         return readFile(solution.getSources() + APP_LOG, offset);
     }
 

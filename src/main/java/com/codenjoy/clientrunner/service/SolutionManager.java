@@ -2,8 +2,8 @@ package com.codenjoy.clientrunner.service;
 
 import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
-import com.codenjoy.clientrunner.model.Server;
 import com.codenjoy.clientrunner.model.Solution;
+import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.DockerService;
 import com.codenjoy.clientrunner.service.facade.LogWriter;
 import com.github.dockerjava.api.model.HostConfig;
@@ -29,15 +29,15 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DockerRunnerService {
+public class SolutionManager {
 
     private final DockerConfig config;
     private HostConfig hostConfig;
     private final DockerService docker;
     private final Set<Solution> solutions = ConcurrentHashMap.newKeySet();
 
-    private void killLastIfPresent(Server server) {
-        getSolutions(server).stream()
+    private void killLastIfPresent(Token token) {
+        getSolutions(token).stream()
                 .filter(s -> s.getStatus().isActive())
                 .forEach(this::kill);
     }
@@ -52,10 +52,10 @@ public class DockerRunnerService {
 
     // TODO: Refactor this
     @SneakyThrows
-    public void runSolution(Server server, File sources) {
-        Solution solution = new Solution(server, sources);
+    public void runSolution(Token token, File sources) {
+        Solution solution = new Solution(token, sources);
         addDockerfile(solution);
-        killLastIfPresent(server);
+        killLastIfPresent(token);
 
         /* TODO: try to avoid copy Dockerfile.
             https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
@@ -105,8 +105,8 @@ public class DockerRunnerService {
         });
     }
 
-    public void kill(Server server, int solutionId) {
-        kill(getSolution(server, solutionId));
+    public void kill(Token token, int solutionId) {
+        kill(getSolution(token, solutionId));
     }
 
     private void kill(Solution solution) {
@@ -143,21 +143,21 @@ public class DockerRunnerService {
         }
     }
 
-    public List<Solution> getSolutions(Server server) {
+    public List<Solution> getSolutions(Token token) {
         return solutions.stream()
-                .filter(server::applicable)
+                .filter(token::isApplicable)
                 .collect(toList());
     }
 
-    public Solution getSolution(Server server, int solutionId) {
-        return getSolutions(server).stream()
+    public Solution getSolution(Token token, int solutionId) {
+        return getSolutions(token).stream()
                 .filter(s -> solutionId == s.getId())
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new);
     }
 
-    public List<SolutionSummary> getAllSolutionsSummary(Server server) {
-        return getSolutions(server).stream()
+    public List<SolutionSummary> getAllSolutionsSummary(Token token) {
+        return getSolutions(token).stream()
                 .map(SolutionSummary::new)
                 .sorted(Comparator.comparingInt(SolutionSummary::getId))
                 .collect(toList());
