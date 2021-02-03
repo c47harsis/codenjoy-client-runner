@@ -52,7 +52,7 @@ public class ClientServerService {
         return new Pair<>(matcher.group(1), matcher.group(2));
     }
 
-    public void killSolution(String server, Integer solutionId) {
+    public void killSolution(String server, int solutionId) {
         Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
         dockerRunnerService.kill(playerIdAndCode.first, playerIdAndCode.second, solutionId);
     }
@@ -62,17 +62,17 @@ public class ClientServerService {
         return dockerRunnerService.getAllSolutionsSummary(playerIdAndCode.first, playerIdAndCode.second);
     }
 
-    public SolutionSummaryDto getSolutionSummary(String server, Integer solutionId) {
+    public SolutionSummaryDto getSolutionSummary(String server, int solutionId) {
         Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
         return dockerRunnerService.getSolutionSummary(solutionId, playerIdAndCode.first, playerIdAndCode.second);
     }
 
-    public List<String> getBuildLogs(String server, Integer solutionId, Integer offset) {
+    public List<String> getBuildLogs(String server, int solutionId, int offset) {
         Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
         return dockerRunnerService.getBuildLogs(solutionId, playerIdAndCode.first, playerIdAndCode.second, offset);
     }
 
-    public List<String> getRuntimeLogs(String server, Integer solutionId, Integer offset) {
+    public List<String> getRuntimeLogs(String server, int solutionId, int offset) {
         Pair<String, String> playerIdAndCode = extractPlayerIdAndCode(server);
         return dockerRunnerService.getRuntimeLogs(solutionId, playerIdAndCode.first, playerIdAndCode.second, offset);
     }

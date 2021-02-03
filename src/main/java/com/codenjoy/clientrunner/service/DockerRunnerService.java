@@ -242,22 +242,22 @@ public class DockerRunnerService {
                 .collect(Collectors.toList());
     }
 
-    public SolutionSummaryDto getSolutionSummary(Integer solutionId, String playerId, String code) {
+    public SolutionSummaryDto getSolutionSummary(int solutionId, String playerId, String code) {
         Solution solution = getSolution(playerId, code, solutionId);
         return SolutionSummaryDto.fromSolution(solution);
     }
 
-    public List<String> getBuildLogs(Integer solutionId, String playerId, String code, Integer offset) {
+    public List<String> getBuildLogs(int solutionId, String playerId, String code, int offset) {
         Solution solution = getSolution(playerId, code, solutionId);
         return readFileFromLine(solution.getSources() + "/build.log", offset);
     }
 
-    public List<String> getRuntimeLogs(Integer solutionId, String playerId, String code, Integer offset) {
+    public List<String> getRuntimeLogs(int solutionId, String playerId, String code, int offset) {
         Solution solution = getSolution(playerId, code, solutionId);
         return readFileFromLine(solution.getSources() + "/app.log", offset);
     }
 
-    private List<String> readFileFromLine(String filePath, Integer offset) {
+    private List<String> readFileFromLine(String filePath, int offset) {
         try (Stream<String> log = Files.lines(Paths.get(filePath))) {
             return log.skip(offset).collect(Collectors.toList());
         } catch (IOException e) {
