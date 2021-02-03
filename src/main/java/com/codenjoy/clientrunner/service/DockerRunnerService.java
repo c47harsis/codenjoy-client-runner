@@ -4,8 +4,6 @@ import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.model.Server;
 import com.codenjoy.clientrunner.model.Solution;
-import com.github.dockerjava.api.command.BuildImageResultCallback;
-import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.HostConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -31,7 +29,6 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 public class DockerRunnerService {
 
-    public static final String SERVER_PARAMETER = "CODENJOY_URL";
     private final DockerConfig config;
     private HostConfig hostConfig;
     private DockerService docker;
@@ -69,54 +66,29 @@ public class DockerRunnerService {
         try {
             solution.setStatus(COMPILING);
             LogWriter writer = new LogWriter(solution, true);
-            docker.buildImageCmd(solution.getSources())
-                    .withBuildArg(SERVER_PARAMETER, solution.getServer())
-                    .exec(new BuildImageResultCallback() {
-                        private String imageId;
-                        private String error;
+            docker.buildImage(solution, writer, imageId -> {
+                if (solution.getStatus() == KILLED) {
+                    return;
+                }
+                solution.setImageId(imageId);
+                solution.setStatus(RUNNING);
+                solution.setStarted(LocalDateTime.now());
+                String containerId = docker.createContainer(imageId, hostConfig);
+                solution.setContainerId(containerId);
 
-                        @Override
-                        public void onNext(BuildResponseItem item) {
-                            if (item.getStream() != null) {
-                                writer.write(item.getStream());
-                            }
-                            if (item.isBuildSuccessIndicated()) {
-                                this.imageId = item.getImageId();
-                            } else if (item.isErrorIndicated()) {
-                                this.error = item.getError();
-                            }
-                        }
+                docker.startContainer(solution);
 
-                        @SneakyThrows
-                        @Override
-                        public void onComplete() {
-                            writer.close();
-                            if (solution.getStatus() == KILLED) {
-                                super.onComplete();
-                                return;
-                            }
-                            solution.setImageId(imageId);
-                            solution.setStatus(RUNNING);
-                            solution.setStarted(LocalDateTime.now());
-                            String containerId = docker.createContainer(imageId, hostConfig);
-                            solution.setContainerId(containerId);
+                docker.logContainer(solution, new LogWriter(solution, false));
 
-                            docker.startContainer(solution);
-
-                            LogWriter writer = new LogWriter(solution, false);
-                            docker.logContainer(solution, writer);
-
-                            docker.waitContainer(solution, () -> {
-                                solution.setFinished(LocalDateTime.now());
-                                if (solution.getStatus() == KILLED) {
-                                    solution.setStatus(FINISHED);
-                                }
-                                docker.removeContainer(solution);
-                                // TODO: remove images
-                            });
-                            super.onComplete();
-                        }
-                    });
+                docker.waitContainer(solution, () -> {
+                    solution.setFinished(LocalDateTime.now());
+                    if (solution.getStatus() == KILLED) {
+                        solution.setStatus(FINISHED);
+                    }
+                    docker.removeContainer(solution);
+                    // TODO: remove images
+                });
+            });
         } catch (Throwable e) {
             if (!KILLED.equals(solution.getStatus())) {
                 solution.setStatus(ERROR);

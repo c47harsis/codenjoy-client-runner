@@ -3,6 +3,8 @@ package com.codenjoy.clientrunner.service;
 import com.codenjoy.clientrunner.model.Solution;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
+import com.github.dockerjava.api.command.BuildImageResultCallback;
+import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
@@ -11,10 +13,14 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.function.Consumer;
+
 @Slf4j
 @Service
 @AllArgsConstructor
 public class DockerService {
+
+    public static final String SERVER_PARAMETER = "CODENJOY_URL";
 
     private final DockerClient docker = DockerClientBuilder.getInstance().build();
 
@@ -49,6 +55,36 @@ public class DockerService {
         return docker.createContainerCmd(imageId)
                 .withHostConfig(hostConfig)
                 .exec().getId();
+    }
+
+    public void buildImage(Solution solution, LogWriter writer, Consumer<String> onCompete) {
+        docker.buildImageCmd(solution.getSources())
+                .withBuildArg(SERVER_PARAMETER, solution.getServer())
+                .exec(new BuildImageResultCallback() {
+                    private String imageId;
+                    private String error;
+
+                    @Override
+                    public void onNext(BuildResponseItem item) {
+                        if (item.getStream() != null) {
+                            writer.write(item.getStream());
+                        }
+                        if (item.isBuildSuccessIndicated()) {
+                            this.imageId = item.getImageId();
+                        } else if (item.isErrorIndicated()) {
+                            this.error = item.getError();
+                        }
+                    }
+
+                    @SneakyThrows
+                    @Override
+                    public void onComplete() {
+                        writer.close();
+
+                        onCompete.accept(imageId);
+                        super.onComplete();
+                    }
+                });
     }
 
     public void logContainer(Solution solution, LogWriter writer) {
