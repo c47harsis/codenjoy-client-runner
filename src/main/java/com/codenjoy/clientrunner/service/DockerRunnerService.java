@@ -4,14 +4,12 @@ import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.model.Server;
 import com.codenjoy.clientrunner.model.Solution;
-import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.WaitResponse;
-import com.github.dockerjava.core.DockerClientBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +35,8 @@ public class DockerRunnerService {
 
     public static final String SERVER_PARAMETER = "CODENJOY_URL";
     private final DockerConfig config;
-    private final DockerClient docker = DockerClientBuilder.getInstance().build();
     private HostConfig hostConfig;
+    private DockerService docker;
     private final Set<Solution> solutions = ConcurrentHashMap.newKeySet();
 
     private void killLastIfPresent(Server server) {
@@ -155,7 +153,7 @@ public class DockerRunnerService {
                                     if (solution.getStatus() == KILLED) {
                                         solution.setStatus(FINISHED);
                                     }
-                                    docker.removeContainerCmd(containerId).withRemoveVolumes(true).exec();
+                                    docker.removeContainer(solution);
                                     // TODO: remove images
                                     super.onComplete();
                                 }
@@ -180,7 +178,7 @@ public class DockerRunnerService {
         }
         solution.setStatus(KILLED);
         if (solution.getContainerId() != null) {
-            docker.killContainerCmd(solution.getContainerId()).exec();
+            docker.killContainer(solution);
         }
     }
 
