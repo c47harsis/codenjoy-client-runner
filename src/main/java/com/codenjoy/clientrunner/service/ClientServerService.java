@@ -32,14 +32,14 @@ public class ClientServerService {
     public void checkSolution(CheckRequest request) {
         Server server = parse(request.getServer());
         File directory = getSolutionDirectory(server);
-        Git repo = git.clone(request.getRepo(), directory); // TODO: async
 
+        Git repo = git.clone(request.getRepo(), directory); // TODO: async
         if (repo == null) {
             throw new IllegalArgumentException("Can not clone repository: " +
                     request.getRepo());
         }
 
-        docker.runSolution(directory, server);
+        docker.runSolution(server, directory);
     }
 
     private File getSolutionDirectory(Server server) {

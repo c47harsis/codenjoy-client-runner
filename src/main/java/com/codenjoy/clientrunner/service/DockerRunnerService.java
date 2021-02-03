@@ -60,7 +60,7 @@ public class DockerRunnerService {
 
     // TODO: Refactor this
     @SneakyThrows
-    public void runSolution(File sources, Server server) {
+    public void runSolution(Server server, File sources) {
         Solution solution = new Solution(server, sources);
         addDockerfile(solution);
 
