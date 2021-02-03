@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Solution {
     private static final AtomicInteger idCounter = new AtomicInteger(0);
 
-    private Integer id;
+    private int id;
     private String playerId;
     private String code;
     private String server;

@@ -1,8 +1,8 @@
 package com.codenjoy.clientrunner.service;
 
 import com.codenjoy.clientrunner.config.DockerConfig;
-import com.codenjoy.clientrunner.model.Solution;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
+import com.codenjoy.clientrunner.model.Solution;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
@@ -174,11 +174,11 @@ public class DockerRunnerService {
         }
     }
 
-    public void kill(String playerId, String code, Integer solutionId) {
+    public void kill(String playerId, String code, int solutionId) {
         solutions.stream()
                 .filter(s -> playerId.equals(s.getPlayerId()))
                 .filter(s -> code.equals(s.getCode()))
-                .filter(s -> solutionId.equals(s.getId()))
+                .filter(s -> solutionId == s.getId())
                 .findFirst()
                 .ifPresentOrElse(this::kill, () -> {
                     throw new IllegalArgumentException();
@@ -226,9 +226,9 @@ public class DockerRunnerService {
                 .collect(Collectors.toList());
     }
 
-    private Solution getSolution(String playerId, String code, Integer solutionId) {
+    private Solution getSolution(String playerId, String code, int solutionId) {
         Solution solution = solutions.stream()
-                .filter(s -> solutionId.equals(s.getId()))
+                .filter(s -> solutionId == s.getId())
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new);
 

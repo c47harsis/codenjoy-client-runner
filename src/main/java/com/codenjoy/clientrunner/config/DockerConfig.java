@@ -24,7 +24,7 @@ public class DockerConfig {
         private long cpuPeriod;
         private long cpuQuota;
 
-        public void setMemoryLimitMB(Integer value) {
+        public void setMemoryLimitMB(int value) {
             if (value != 0 && value < MINIMAL_MEMORY_LIMIT) {
                 throw new ValidationException("Set 0 for docker's default container memory limit," +
                         " otherwise the value should be not less than 6MB");

@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SolutionSummary {
-    private Integer id;
+
+    private int id;
     private String status;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "hh:mm:ss")
