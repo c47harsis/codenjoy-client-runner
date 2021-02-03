@@ -250,18 +250,15 @@ public class DockerRunnerService {
     }
 
     public SolutionSummary getSolutionSummary(int solutionId, Server server) {
-        Solution solution = getSolution(server, solutionId);
-        return new SolutionSummary(solution);
+        return new SolutionSummary(getSolution(server, solutionId));
     }
 
     public List<String> getBuildLogs(int solutionId, Server server, int offset) {
-        Solution solution = getSolution(server, solutionId);
-        return readFileFromLine(solution.getSources() + "/build.log", offset);
+        return readFileFromLine(getSolution(server, solutionId).getSources() + "/build.log", offset);
     }
 
     public List<String> getRuntimeLogs(int solutionId, Server server, int offset) {
-        Solution solution = getSolution(server, solutionId);
-        return readFileFromLine(solution.getSources() + "/app.log", offset);
+        return readFileFromLine(getSolution(server, solutionId).getSources() + "/app.log", offset);
     }
 
     private List<String> readFileFromLine(String filePath, int offset) {
