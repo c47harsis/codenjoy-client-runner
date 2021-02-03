@@ -9,7 +9,6 @@ import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
-import com.github.dockerjava.api.model.WaitResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -145,18 +144,13 @@ public class DockerRunnerService {
                                         }
                                     });
 
-                            docker.waitContainerCmd(containerId).exec(new ResultCallback.Adapter<WaitResponse>() {
-                                @SneakyThrows
-                                @Override
-                                public void onComplete() {
-                                    solution.setFinished(LocalDateTime.now());
-                                    if (solution.getStatus() == KILLED) {
-                                        solution.setStatus(FINISHED);
-                                    }
-                                    docker.removeContainer(solution);
-                                    // TODO: remove images
-                                    super.onComplete();
+                            docker.waitContainer(solution, () -> {
+                                solution.setFinished(LocalDateTime.now());
+                                if (solution.getStatus() == KILLED) {
+                                    solution.setStatus(FINISHED);
                                 }
+                                docker.removeContainer(solution);
+                                // TODO: remove images
                             });
                             super.onComplete();
                         }
