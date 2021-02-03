@@ -4,13 +4,19 @@ import com.codenjoy.clientrunner.config.ClientServerServiceConfig;
 import com.codenjoy.clientrunner.dto.CheckRequest;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.model.Server;
+import com.codenjoy.clientrunner.model.Solution;
 import lombok.AllArgsConstructor;
 import org.eclipse.jgit.api.Git;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @AllArgsConstructor
@@ -59,15 +65,25 @@ public class ClientServerService {
     }
 
     public SolutionSummary getSolutionSummary(String server, int solutionId) {
-        return docker.getSolutionSummary(solutionId, parse(server));
+        return new SolutionSummary(docker.getSolution(parse(server), solutionId));
     }
 
     public List<String> getBuildLogs(String server, int solutionId, int offset) {
-        return docker.getBuildLogs(solutionId, parse(server), offset);
+        Solution solution = docker.getSolution(parse(server), solutionId);
+        return readFile(solution.getSources() + "/build.log", offset);
     }
 
     public List<String> getRuntimeLogs(String server, int solutionId, int offset) {
-        return docker.getRuntimeLogs(solutionId, parse(server), offset);
+        Solution solution = docker.getSolution(parse(server), solutionId);
+        return readFile(solution.getSources() + "/app.log", offset);
+    }
+
+    private List<String> readFile(String filePath, int offset) {
+        try (Stream<String> log = Files.lines(Paths.get(filePath))) {
+            return log.skip(offset).collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new IllegalStateException();
+        }
     }
 
 }

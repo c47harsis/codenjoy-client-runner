@@ -21,15 +21,12 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.*;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.codenjoy.clientrunner.model.Status.*;
 
@@ -229,7 +226,7 @@ public class DockerRunnerService {
                 .collect(Collectors.toList());
     }
 
-    private Solution getSolution(Server server, int solutionId) {
+    public Solution getSolution(Server server, int solutionId) {
         Solution solution = solutions.stream()
                 .filter(s -> solutionId == s.getId())
                 .findFirst()
@@ -247,25 +244,5 @@ public class DockerRunnerService {
                 .map(SolutionSummary::new)
                 .sorted(Comparator.comparingInt(SolutionSummary::getId))
                 .collect(Collectors.toList());
-    }
-
-    public SolutionSummary getSolutionSummary(int solutionId, Server server) {
-        return new SolutionSummary(getSolution(server, solutionId));
-    }
-
-    public List<String> getBuildLogs(int solutionId, Server server, int offset) {
-        return readFileFromLine(getSolution(server, solutionId).getSources() + "/build.log", offset);
-    }
-
-    public List<String> getRuntimeLogs(int solutionId, Server server, int offset) {
-        return readFileFromLine(getSolution(server, solutionId).getSources() + "/app.log", offset);
-    }
-
-    private List<String> readFileFromLine(String filePath, int offset) {
-        try (Stream<String> log = Files.lines(Paths.get(filePath))) {
-            return log.skip(offset).collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new IllegalStateException();
-        }
     }
 }
