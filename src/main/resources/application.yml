@@ -6,7 +6,7 @@ service:
   solutionFolder:
     path: "./solutions"
     pattern: "yyyy-MM-dd'_'HH-mm-ss"
-  serverRegex: "^https?://[0-9A-Za-z_.\\-]+/codenjoy-contest/board/player/([\\w]+)\\?code=([\\w]+)"
+  serverRegex: "^https?://[0-9A-Za-z_.\\-:]+/codenjoy-contest/board/player/([\\w]+)\\?code=([\\w]+)"
 
 docker:
   container:
