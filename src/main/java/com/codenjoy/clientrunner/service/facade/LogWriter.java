@@ -14,16 +14,19 @@ public class LogWriter {
     public static final String APP_LOG = "/app.log";
 
     private final Writer writer;
+    private final boolean isBuild;
 
     @SneakyThrows
     public LogWriter(Solution solution, boolean isBuild) {
+        this.isBuild = isBuild;
         String file = isBuild ? BUILD_LOG : APP_LOG;
         writer = new BufferedWriter(new FileWriter(solution.getSources() + file));
     }
 
     public void write(Object object) {
         try {
-            writer.write(object.toString() + "\n");
+            String newLineSeparator = isBuild ? "" : "\n";
+            writer.write(object.toString() + newLineSeparator);
             writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
