@@ -7,6 +7,7 @@ import com.codenjoy.clientrunner.model.Solution;
 import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.GitService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,6 +24,7 @@ import java.util.stream.Stream;
 import static com.codenjoy.clientrunner.service.facade.LogWriter.APP_LOG;
 import static com.codenjoy.clientrunner.service.facade.LogWriter.BUILD_LOG;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class ClientServerService {
@@ -74,15 +77,20 @@ public class ClientServerService {
     }
 
     public List<String> getBuildLogs(String serverUrl, int solutionId, int offset) {
-        Token token = parse(serverUrl);
-        Solution solution = solutionManager.getSolution(token, solutionId);
-        return readFile(solution.getSources() + BUILD_LOG, offset);
+        return readLog(BUILD_LOG, serverUrl, solutionId, offset);
     }
 
     public List<String> getRuntimeLogs(String serverUrl, int solutionId, int offset) {
+        return readLog(APP_LOG, serverUrl, solutionId, offset);
+    }
+
+    private List<String> readLog(String logFilePath, String serverUrl, int solutionId, int offset) {
         Token token = parse(serverUrl);
         Solution solution = solutionManager.getSolution(token, solutionId);
-        return readFile(solution.getSources() + APP_LOG, offset);
+        if (!solution.getStatus().isActive()) {
+            return Collections.emptyList();
+        }
+        return readFile(solution.getSources() + logFilePath, offset);
     }
 
     private List<String> readFile(String filePath, int offset) {
