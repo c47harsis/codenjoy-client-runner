@@ -89,7 +89,7 @@ public class SolutionManager {
 
     public Solution getSolution(Token token, int solutionId) {
         return getSolutions(token).stream()
-                .filter(s -> solutionId == s.getId())
+                .filter(s -> Objects.equals(s.getId(), solutionId))
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new);
     }

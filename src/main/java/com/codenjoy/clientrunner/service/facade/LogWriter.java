@@ -11,7 +11,7 @@ import java.io.Writer;
 public class LogWriter {
 
     public static final String BUILD_LOG = "/build.log";
-    public static final String APP_LOG = "/app.log";
+    public static final String RUNTIME_LOG = "/app.log";
 
     private final Writer writer;
     private final boolean isBuild;
@@ -19,7 +19,7 @@ public class LogWriter {
     @SneakyThrows
     public LogWriter(Solution solution, boolean isBuild) {
         this.isBuild = isBuild;
-        String file = isBuild ? BUILD_LOG : APP_LOG;
+        String file = isBuild ? BUILD_LOG : RUNTIME_LOG;
         writer = new BufferedWriter(new FileWriter(solution.getSources() + file));
     }
 

@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.codenjoy.clientrunner.service.facade.LogWriter.APP_LOG;
-import static com.codenjoy.clientrunner.service.facade.LogWriter.BUILD_LOG;
+import static com.codenjoy.clientrunner.model.Solution.Status.*;
+import static com.codenjoy.clientrunner.service.facade.LogWriter.*;
 
 @Slf4j
 @Service
@@ -57,17 +57,28 @@ public class ClientServerService {
         return solutionManager.getAllSolutionsSummary(token);
     }
 
-    public List<String> getBuildLogs(String serverUrl, int solutionId, int offset) {
-        return readLog(BUILD_LOG, serverUrl, solutionId, offset);
-    }
-
     public SolutionSummary getSolutionSummary(String serverUrl, int solutionId) {
         Token token = parse(serverUrl);
         return new SolutionSummary(solutionManager.getSolution(token, solutionId));
     }
 
+    public List<String> getBuildLogs(String serverUrl, int solutionId, int offset) {
+        Token token = parse(serverUrl);
+        Solution solution = solutionManager.getSolution(token, solutionId);
+        if (NEW.equals(solution.getStatus())) {
+            return Collections.emptyList();
+        }
+        return readFile(solution.getSources() + BUILD_LOG, offset);
+    }
+
     public List<String> getRuntimeLogs(String serverUrl, int solutionId, int offset) {
-        return readLog(APP_LOG, serverUrl, solutionId, offset);
+        Token token = parse(serverUrl);
+        Solution solution = solutionManager.getSolution(token, solutionId);
+        Solution.Status status = solution.getStatus();
+        if (NEW.equals(status) || COMPILING.equals(status)) {
+            return Collections.emptyList();
+        }
+        return readFile(solution.getSources() + RUNTIME_LOG, offset);
     }
 
     private Token parse(String serverUrl) {
@@ -86,20 +97,12 @@ public class ClientServerService {
                 .format(DateTimeFormatter.ofPattern(config.getSolutionFolder().getPattern()));
     }
 
-    private List<String> readLog(String logFilePath, String serverUrl, int solutionId, int offset) {
-        Token token = parse(serverUrl);
-        Solution solution = solutionManager.getSolution(token, solutionId);
-        if (!solution.getStatus().isActive()) {
-            return Collections.emptyList();
-        }
-        return readFile(solution.getSources() + logFilePath, offset);
-    }
-
     private List<String> readFile(String filePath, int offset) {
         try (Stream<String> log = Files.lines(Paths.get(filePath))) {
             return log.skip(offset).collect(Collectors.toList());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("Can not read log : " + filePath);
+            return Collections.emptyList();
         }
     }
 
