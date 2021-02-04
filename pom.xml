@@ -112,13 +112,6 @@
 				</includes>
 			</resource>
 			<resource>
-				<directory>.</directory>
-				<filtering>true</filtering>
-				<includes>
-					<include>dockerfiles/**/*</include>
-				</includes>
-			</resource>
-			<resource>
 				<directory>src</directory>
 				<includes>
 					<include>license/**</include>

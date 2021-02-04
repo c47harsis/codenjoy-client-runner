@@ -1,9 +1,7 @@
 package com.codenjoy.clientrunner.model;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+import org.springframework.util.Assert;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -20,26 +18,56 @@ public class Solution {
 
     private static final AtomicInteger idCounter = new AtomicInteger(0);
 
-    private int id;
-    private String playerId;
-    private String code;
-    private String serverUrl;
-    private volatile Status status;
+    private final int id;
+    private final String playerId;
+    private final String code;
+    private final String serverUrl;
+    private final File sources;
+    private final Platform platform;
     private LocalDateTime created;
     private LocalDateTime started;
     private LocalDateTime finished;
-    private String containerId;
     private String imageId;
-    private File sources;
+    private String containerId;
+    private volatile Status status;
 
-    public Solution(Token token, File sources) {
+    private Solution(String playerId, String code, String serverUrl, File sources, Platform platform) {
         this.id = idCounter.incrementAndGet();
-        this.playerId = token.getPlayerId();
-        this.code = token.getCode();
-        this.serverUrl = token.getServerUrl();
+        this.playerId = playerId;
+        this.code = code;
+        this.serverUrl = serverUrl;
         this.status = NEW;
         this.sources = sources;
         this.created = LocalDateTime.now();
+        this.platform = platform;
+    }
+
+    public static Solution from(Token token, File sources) {
+        Assert.notNull(token, "Token can not be null");
+        Assert.notNull(sources, "Sources can not be null");
+        if (!sources.exists()) {
+            throw new IllegalArgumentException("Source folder with path : " + sources.getPath() + " doesn't exist");
+        }
+        Platform platform = detectPlatform(sources);
+        if (platform == null) {
+            throw  new IllegalArgumentException("Solution platform is not supported");
+        }
+        return new Solution(token.getPlayerId(), token.getCode(), token.getServerUrl(), sources, platform);
+    }
+
+    private static Platform detectPlatform(File sources) {
+        File[] files = sources.listFiles();
+        if (files == null) {
+            return null;
+        }
+        Platform platform;
+        for (File file : files) {
+            String filename = file.getName();
+            if ((platform = Platform.of(filename)) != null) {
+                return platform;
+            }
+        }
+        return null;
     }
 
     public synchronized void setStatus(Status newStatus) {
@@ -49,6 +77,7 @@ public class Solution {
         status = newStatus;
     }
 
+    @RequiredArgsConstructor
     public enum Status {
 
         NEW(true),
@@ -58,16 +87,10 @@ public class Solution {
         ERROR(false),
         KILLED(false);
 
-        private boolean active;
-
-        Status(boolean active) {
-            this.active = active;
-        }
+        private final boolean active;
 
         public boolean isActive() {
             return active;
         }
     }
-
 }
-

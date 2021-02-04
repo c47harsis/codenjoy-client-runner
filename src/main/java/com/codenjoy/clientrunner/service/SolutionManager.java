@@ -2,6 +2,7 @@ package com.codenjoy.clientrunner.service;
 
 import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
+import com.codenjoy.clientrunner.model.Platform;
 import com.codenjoy.clientrunner.model.Solution;
 import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.DockerService;
@@ -47,7 +48,7 @@ public class SolutionManager {
     // TODO: Refactor this
     @SneakyThrows
     public void runSolution(Token token, File sources) {
-        Solution solution = new Solution(token, sources);
+        Solution solution = Solution.from(token, sources);
         addDockerfile(solution);
         killLastIfPresent(token);
 
@@ -140,23 +141,12 @@ public class SolutionManager {
     }
 
     private void addDockerfile(Solution solution) {
+        String dockerfileFolder = solution.getPlatform().getFolderName();
         try {
             File destination = new File(solution.getSources(), "Dockerfile");
-
-            String relative = "dockerfiles/java/Dockerfile";
-            File inSource = new File("./" + relative);
-            if (!inSource.exists()) {
-                inSource = new File("./client-runner/" + relative);
-            }
-            if (inSource.exists()) {
-                FileUtils.copyFile(inSource, destination);
-                log.debug("java-dockerfile copied from sources");
-                return;
-            }
-
-            URL inJar = getClass().getResource("/WEB-INF/classes/" + relative);
-            FileUtils.copyURLToFile(inJar, destination);
-            log.debug("java-dockerfile copied from jar");
+            URL dockerfileUrl = getClass()
+                    .getResource("/dockerfiles/" + dockerfileFolder + "/Dockerfile");
+            FileUtils.copyURLToFile(dockerfileUrl, destination);
         } catch (IOException e) {
             log.error("Can not add Dockerfile to solution with id: {}", solution.getId());
             solution.setStatus(ERROR);

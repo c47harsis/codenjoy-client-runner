@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,7 +55,8 @@ public class ClientServerService {
     }
 
     private String now() {
-        return LocalDateTime.now().format(config.getSolutionFolderFormatter());
+        return LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern(config.getSolutionFolder().getPattern()));
     }
 
     private Token parse(String serverUrl) {
