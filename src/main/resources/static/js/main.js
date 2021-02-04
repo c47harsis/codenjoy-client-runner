@@ -193,8 +193,11 @@ function showSolutionInfo(solutionId) {
             clearInterval(logsInterval)
             logsInterval = setInterval(function () { fetchRuntimeLogs(currentSolutionId); }, 1500)
         }
-    
-        $('#runtimeLogButton').click();
+        if (status == 'NEW' || status == 'COMPILING') {
+            $('#buildLogButton').click();
+        } else {
+            $('#runtimeLogButton').click();
+        }
     })
 
 }
