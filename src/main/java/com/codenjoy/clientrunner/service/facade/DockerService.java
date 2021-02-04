@@ -13,6 +13,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -23,6 +24,15 @@ public class DockerService {
     public static final String SERVER_PARAMETER = "CODENJOY_URL";
 
     private final DockerClient docker = DockerClientBuilder.getInstance().build();
+
+    @PostConstruct
+    protected void init() {
+        try {
+            docker.pingCmd().exec();
+        } catch (RuntimeException e) {
+            log.error("Docker not found");
+        }
+    }
 
     public void killContainer(Solution solution) {
         docker.killContainerCmd(solution.getContainerId())
