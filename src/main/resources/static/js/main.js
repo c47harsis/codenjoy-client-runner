@@ -1,6 +1,7 @@
 var getSolutionsInterval
 var logsInterval
 var solutionStatusInterval
+var currentSolutionId
 
 $(function () {
     var { repo, serverUrl } = getUrls()
@@ -19,6 +20,27 @@ $(function () {
         sendSolution()
     })
 
+    $('#runtimeLogButton').click(function (e) { 
+        $('#logSelectorBlock>button').addClass('btn-link');
+        $(this).removeClass('btn-link');
+        showRuntimeLogs();
+    });
+
+    $('#buildLogButton').click(function (e) { 
+        $('#logSelectorBlock>button').addClass('btn-link');
+        $(this).removeClass('btn-link');
+        showBuildLogs()
+    });
+
+    $('#stopSolutionButton').click(function (e) {
+        stopSolution(currentSolutionId)
+    });
+
+    $('#closeInfoButton').click(function (e) {
+        hideSolutionInfo()
+        showTable()
+    });
+
     showTable()
 })
 
@@ -35,9 +57,7 @@ function stopSolution(solutionId) {
         contentType: "application/json",
         cache: "false",
         success: function (response) {
-            $.each(response, function (i, logStr) {
-                $('#logField').append('<samp>Has been killed by player.</samp><br/>');
-            });
+            
         }
     })
 }
@@ -136,40 +156,51 @@ function showTable() {
 
 function hideSolutionInfo() {
     clearInterval(logsInterval)
-
     clearInterval(solutionStatusInterval)
     $('#solutionInfo').hide();
 }
 
-function showSolutionInfo(solutionId) {
-    $('#solutionInfo').show();
-
+function showRuntimeLogs() {
+    clearInterval(logsInterval)
     $('#logField').empty();
-    fetchSolutionStatus(solutionId)
-    fetchRuntimeLogs(solutionId)
-
-    $('#stopSolutionButton').click(function (e) {
-        stopSolution(solutionId)
-    });
-    $('#closeInfoButton').click(function (e) {
-        hideSolutionInfo()
-        showTable()
-    });
-
+    fetchRuntimeLogs(currentSolutionId)
     var status = $('#solStatus').text();
     if (status !== 'ERROR' && status !== 'FINISHED' && status !== 'KILLED') {
-
         clearInterval(logsInterval)
-        logsInterval = setInterval(function () { fetchRuntimeLogs(solutionId); }, 1500)
-
-        clearInterval(solutionStatusInterval)
-        solutionStatusInterval = setInterval(function () { fetchSolutionStatus(solutionId); }, 1500)
+        logsInterval = setInterval(function () { fetchRuntimeLogs(currentSolutionId); }, 1500)
     }
+}
+
+function showBuildLogs() {
+    clearInterval(logsInterval)
+    $('#logField').empty();
+    fetchBuildLogs(currentSolutionId)
+    var status = $('#solStatus').text();
+    if (status !== 'ERROR' && status !== 'FINISHED' && status !== 'KILLED') {
+        clearInterval(logsInterval)
+        logsInterval = setInterval(function () { fetchBuildLogs(currentSolutionId); }, 1500)
+    }
+}
+
+function showSolutionInfo(solutionId) {
+    currentSolutionId = solutionId
+    $('#solutionInfo').show();
+    fetchSolutionStatus(currentSolutionId).then(() => {
+        var status = $('#solStatus').text();
+        if (status !== 'ERROR' && status !== 'FINISHED' && status !== 'KILLED') {
+            clearInterval(solutionStatusInterval)
+            solutionStatusInterval = setInterval(function () { fetchSolutionStatus(currentSolutionId); }, 1500)
+            clearInterval(logsInterval)
+            logsInterval = setInterval(function () { fetchRuntimeLogs(currentSolutionId); }, 1500)
+        }
+    
+        $('#runtimeLogButton').click();
+    })
 
 }
 
 function fetchSolutionStatus(solutionId) {
-    $.ajax({
+    return $.ajax({
         type: "get",
         url: "summary",
         data: {
@@ -197,11 +228,32 @@ function fetchSolutionStatus(solutionId) {
 
 function fetchRuntimeLogs(solutionId) {
     var linesCount = $('#logField .logLine').length;
-    console.log(linesCount);
 
     $.ajax({
         type: "get",
         url: "runtime_logs",
+        data: {
+            serverUrl: getUrls().serverUrl,
+            solutionId: solutionId,
+            offset: linesCount
+        },
+        dataType: "json",
+        contentType: "application/json",
+        cache: "false",
+        success: function (response) {
+            console.log(response);
+            $.each(response, function (i, logStr) {
+                $('#logField').append('<samp class="logLine">' + logStr + '</samp><br/>');
+            });
+        }
+    })
+}
+
+function fetchBuildLogs(solutionId) {
+    var linesCount = $('#logField .logLine').length;
+    $.ajax({
+        type: "get",
+        url: "build_logs",
         data: {
             serverUrl: getUrls().serverUrl,
             solutionId: solutionId,
