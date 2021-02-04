@@ -21,6 +21,7 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -81,7 +82,8 @@ public class SolutionManager {
 
     public List<Solution> getSolutions(Token token) {
         return solutions.stream()
-                .filter(token::isApplicable)
+                .filter(s -> Objects.equals(s.getPlayerId(), token.getPlayerId()))
+                .filter(s -> Objects.equals(s.getCode(), token.getCode()))
                 .collect(toList());
     }
 

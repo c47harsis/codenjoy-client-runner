@@ -47,22 +47,6 @@ public class ClientServerService {
         solutionManager.runSolution(token, directory);
     }
 
-    private File getSolutionDirectory(Token token) {
-        return new File(String.format("%s/%s/%s/%s",
-                config.getSolutionFolder().getPath(),
-                token.getPlayerId(), token.getCode(),
-                now()));
-    }
-
-    private String now() {
-        return LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern(config.getSolutionFolder().getPattern()));
-    }
-
-    private Token parse(String serverUrl) {
-        return new Token(serverUrl, config.getServerRegex());
-    }
-
     public void killSolution(String serverUrl, int solutionId) {
         Token token = parse(serverUrl);
         solutionManager.kill(token, solutionId);
@@ -73,17 +57,33 @@ public class ClientServerService {
         return solutionManager.getAllSolutionsSummary(token);
     }
 
+    public List<String> getBuildLogs(String serverUrl, int solutionId, int offset) {
+        return readLog(BUILD_LOG, serverUrl, solutionId, offset);
+    }
+
     public SolutionSummary getSolutionSummary(String serverUrl, int solutionId) {
         Token token = parse(serverUrl);
         return new SolutionSummary(solutionManager.getSolution(token, solutionId));
     }
 
-    public List<String> getBuildLogs(String serverUrl, int solutionId, int offset) {
-        return readLog(BUILD_LOG, serverUrl, solutionId, offset);
-    }
-
     public List<String> getRuntimeLogs(String serverUrl, int solutionId, int offset) {
         return readLog(APP_LOG, serverUrl, solutionId, offset);
+    }
+
+    private Token parse(String serverUrl) {
+        return Token.from(serverUrl, config.getServerRegex());
+    }
+
+    private File getSolutionDirectory(Token token) {
+        return new File(String.format("%s/%s/%s/%s",
+                config.getSolutionFolder().getPath(),
+                token.getPlayerId(), token.getCode(),
+                now()));
+    }
+
+    private String now() {
+        return LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern(config.getSolutionFolder().getPattern()));
     }
 
     private List<String> readLog(String logFilePath, String serverUrl, int solutionId, int offset) {
