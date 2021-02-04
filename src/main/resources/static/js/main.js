@@ -6,7 +6,7 @@ var currentSolutionId
 $(function () {
     var { repo, serverUrl } = getUrls()
     if (repo === null || serverUrl === null) {
-        $(location).attr('href', '/');
+        goToIndex();
     }
 
     $("#serverUrl").text(serverUrl)
