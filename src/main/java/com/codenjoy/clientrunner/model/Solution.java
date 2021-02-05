@@ -60,10 +60,9 @@ public class Solution {
         if (files == null) {
             return null;
         }
-        Platform platform;
         for (File file : files) {
-            String filename = file.getName();
-            if ((platform = Platform.of(filename)) != null) {
+            Platform platform = Platform.of(file.getName());
+            if (platform != null) {
                 return platform;
             }
         }
@@ -75,6 +74,11 @@ public class Solution {
             return;
         }
         status = newStatus;
+    }
+
+    public boolean allows(Token token) {
+        return playerId == token.getPlayerId()
+                && code == token.getCode();
     }
 
     @RequiredArgsConstructor

@@ -2,7 +2,6 @@ package com.codenjoy.clientrunner.service;
 
 import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
-import com.codenjoy.clientrunner.model.Platform;
 import com.codenjoy.clientrunner.model.Solution;
 import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.DockerService;
@@ -70,7 +69,7 @@ public class SolutionManager {
                     new LogWriter(solution, true),
                     imageId -> runContainer(solution, imageId));
         } catch (Throwable e) {
-            if (!KILLED.equals(solution.getStatus())) {
+            if (solution.getStatus() != KILLED) {
                 solution.setStatus(ERROR);
             }
         }
@@ -82,14 +81,13 @@ public class SolutionManager {
 
     public List<Solution> getSolutions(Token token) {
         return solutions.stream()
-                .filter(s -> Objects.equals(s.getPlayerId(), token.getPlayerId()))
-                .filter(s -> Objects.equals(s.getCode(), token.getCode()))
+                .filter(s -> s.allows(token))
                 .collect(toList());
     }
 
     public Solution getSolution(Token token, int solutionId) {
         return getSolutions(token).stream()
-                .filter(s -> Objects.equals(s.getId(), solutionId))
+                .filter(s -> s.getId() == solutionId)
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new);
     }
@@ -143,12 +141,11 @@ public class SolutionManager {
     }
 
     private void addDockerfile(Solution solution) {
-        String dockerfileFolder = solution.getPlatform().getFolderName();
+        String language = solution.getPlatform().getFolderName();
         try {
             File destination = new File(solution.getSources(), "Dockerfile");
-            URL dockerfileUrl = getClass()
-                    .getResource("/dockerfiles/" + dockerfileFolder + "/Dockerfile");
-            FileUtils.copyURLToFile(dockerfileUrl, destination);
+            URL url = getClass().getResource("/dockerfiles/" + language + "/Dockerfile");
+            FileUtils.copyURLToFile(url, destination);
         } catch (IOException e) {
             log.error("Can not add Dockerfile to solution with id: {}", solution.getId());
             solution.setStatus(ERROR);
