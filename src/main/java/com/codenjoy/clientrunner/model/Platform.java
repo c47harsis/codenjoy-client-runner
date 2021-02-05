@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 @RequiredArgsConstructor
 public enum Platform {
+
     JAVA("pom.xml"), NODEJS("package.json");
 
     private final String filename;

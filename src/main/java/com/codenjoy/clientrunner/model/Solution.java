@@ -5,6 +5,7 @@ import org.springframework.util.Assert;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.codenjoy.clientrunner.model.Solution.Status.KILLED;
@@ -60,10 +61,9 @@ public class Solution {
         if (files == null) {
             return null;
         }
-        Platform platform;
         for (File file : files) {
-            String filename = file.getName();
-            if ((platform = Platform.of(filename)) != null) {
+            Platform platform = Platform.of(file.getName());
+            if (platform != null) {
                 return platform;
             }
         }
@@ -75,6 +75,11 @@ public class Solution {
             return;
         }
         status = newStatus;
+    }
+
+    public boolean allows(Token token) {
+        return Objects.equals(playerId, token.getPlayerId())
+                && Objects.equals(code, token.getCode());
     }
 
     @RequiredArgsConstructor

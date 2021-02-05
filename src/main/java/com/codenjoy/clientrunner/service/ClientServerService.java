@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,22 +64,22 @@ public class ClientServerService {
     }
 
     public List<String> getBuildLogs(String serverUrl, int solutionId, int offset) {
-        Token token = parse(serverUrl);
-        Solution solution = solutionManager.getSolution(token, solutionId);
-        if (NEW.equals(solution.getStatus())) {
-            return Collections.emptyList();
-        }
-        return readFile(solution.getSources() + BUILD_LOG, offset);
+        return getLogs(serverUrl, solutionId, offset, BUILD_LOG, NEW);
     }
 
     public List<String> getRuntimeLogs(String serverUrl, int solutionId, int offset) {
+        return getLogs(serverUrl, solutionId, offset, RUNTIME_LOG, NEW, COMPILING);
+    }
+
+    private List<String> getLogs(String serverUrl, int solutionId, int offset,
+                                 String logFile, Solution.Status... excluded)
+    {
         Token token = parse(serverUrl);
         Solution solution = solutionManager.getSolution(token, solutionId);
-        Solution.Status status = solution.getStatus();
-        if (NEW.equals(status) || COMPILING.equals(status)) {
+        if (Arrays.asList(excluded).contains(solution.getStatus())) {
             return Collections.emptyList();
         }
-        return readFile(solution.getSources() + RUNTIME_LOG, offset);
+        return readFile(solution.getSources() + logFile, offset);
     }
 
     private Token parse(String serverUrl) {
@@ -93,8 +94,9 @@ public class ClientServerService {
     }
 
     private String now() {
+        String pattern = config.getSolutionFolder().getPattern();
         return LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern(config.getSolutionFolder().getPattern()));
+                .format(DateTimeFormatter.ofPattern(pattern));
     }
 
     private List<String> readFile(String filePath, int offset) {

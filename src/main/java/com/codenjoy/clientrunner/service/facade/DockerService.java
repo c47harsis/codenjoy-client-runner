@@ -4,6 +4,7 @@ import com.codenjoy.clientrunner.model.Solution;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
@@ -50,14 +51,31 @@ public class DockerService {
     }
 
     public void killContainer(Solution solution) {
-        docker.killContainerCmd(solution.getContainerId())
-                .exec();
+        if (isContainerRunning(solution)) {
+            docker.killContainerCmd(solution.getContainerId())
+                    .exec();
+        }
+    }
+
+    public boolean isContainerRunning(Solution solution) {
+        try {
+            return docker.inspectContainerCmd(solution.getContainerId())
+                    .exec()
+                    .getState()
+                    .getRunning();
+        } catch (NotFoundException e) {
+            return false;
+        }
     }
 
     public void removeContainer(Solution solution) {
-        docker.removeContainerCmd(solution.getContainerId())
-                .withRemoveVolumes(true)
-                .exec();
+        try {
+            docker.removeContainerCmd(solution.getContainerId())
+                    .withRemoveVolumes(true)
+                    .exec();
+        } catch (NotFoundException e) {
+            // do nothing, container already removed
+        }
     }
 
     public void waitContainer(Solution solution, Runnable onComplete) {
