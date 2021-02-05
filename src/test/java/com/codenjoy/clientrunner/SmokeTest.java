@@ -8,6 +8,9 @@ import lombok.SneakyThrows;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener;
@@ -16,6 +19,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,8 +28,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -36,12 +38,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = ClientRunnerApplication.class,
 		properties = "spring.main.allow-bean-definition-overriding=true")
-@ContextConfiguration(classes = {
-		DockerService.class,
-		GitService.class,
-		SolutionManager.class
-})
 @WebAppConfiguration
+@RunWith(SpringRunner.class)
 public class SmokeTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired
@@ -58,8 +56,8 @@ public class SmokeTest extends AbstractTestNGSpringContextTests {
 
 	private MockMvc mvc;
 
-	@BeforeMethod
-	public void prepareMockMvc() {
+	@Before
+	public void setup() {
 		if (mvc == null) {
 			mvc = MockMvcBuilders.webAppContextSetup(context).build();
 		}
