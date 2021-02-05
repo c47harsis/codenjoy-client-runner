@@ -4,12 +4,14 @@ import com.codenjoy.clientrunner.model.Solution;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
 import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 
 @Data
+@ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SolutionSummary {
 
