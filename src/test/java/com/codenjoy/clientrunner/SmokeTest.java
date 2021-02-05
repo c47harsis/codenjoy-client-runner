@@ -58,143 +58,11 @@ public class SmokeTest {
 	@Autowired
 	private ClientServerService service;
 
-	private MockMvc mvc;
-
-	@Before
-	public void setup() {
-		mvc = MockMvcBuilders.webAppContextSetup(context).build();
-	}
-
-	@SneakyThrows
-	protected String mapToJson(Object obj) {
-		return new ObjectMapper().writeValueAsString(obj);
-	}
-
-	@SneakyThrows
-	protected <T> T mapFromJson(String json, Class<T> clazz) {
-		return new ObjectMapper().readValue(json, clazz);
-	}
-
-	@SneakyThrows
-	private String get(String uri) {
-		return process(200, MockMvcRequestBuilders.get(uri));
-	}
-
-	@SneakyThrows
-	private String get(int status, String uri) {
-		return process(status, MockMvcRequestBuilders.get(uri));
-	}
-
-	@SneakyThrows
-	private String post(int status, String uri) {
-		return process(status, MockMvcRequestBuilders.post(uri));
-	}
-
-	@SneakyThrows
-	private String post(String uri) {
-		return process(200, MockMvcRequestBuilders.post(uri));
-	}
-
-	@SneakyThrows
-	private String post(int status, String uri, String data) {
-		return process(status, MockMvcRequestBuilders.post(uri, data)
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(data));
-	}
-
-	private String process(int status, MockHttpServletRequestBuilder post) throws Exception {
-		MvcResult mvcResult = mvc.perform(post
-				.accept(MediaType.APPLICATION_JSON_VALUE)).andReturn();
-		String result = mvcResult.getResponse().getContentAsString();
-		assertEquals(result, status, mvcResult.getResponse().getStatus());
-		return result;
-	}
-
-	private void assertPost(String url, String json, String expected) {
-		assertPost(200, url, json, expected);
-	}
-
-	private void assertPost(int status, String url, String json, String expected) {
-		String result = post(status, url, fix(json));
-		assertJson(expected, result);
-	}
-
-	private void assertPostError(int status, String url, String json, String expectedMessage) {
-		String result = post(status, url, fix(json));
-		assertError(expectedMessage, result);
-	}
-
-	@SneakyThrows
-	private void assertError(String message, String source) {
-		JSONObject error = tryParseAsJson(source);
-		assertEquals(message, error.getString("message"));
-	}
-
-	@SneakyThrows
-	private JSONObject tryParseAsJson(String source) {
-		try {
-			return new JSONObject(source);
-		} catch (JSONException e) {
-			return new JSONObject(){{
-				put("message", source);
-			}};
-		}
-	}
-
-	private void assertGet(String url, String expected) {
-		String result = get(url);
-		assertJson(expected, result);
-	}
-
-	private void assertJson(String expected, String actual) {
-		boolean isJson = actual.startsWith("{");
-		assertEquals(expected,
-				isJson ? fix2(prettyPrint(actual)) : actual);
-	}
-
-	public static String prettyPrint(Object object) {
-		String json = toStringSorted(object);
-		return clean(json);
-	}
-
-	@SneakyThrows
-	public static String toStringSorted(Object object) {
-		int indentSpaces = 4;
-		if (object instanceof Collection) {
-			return new JSONArray((Collection) object).toString(indentSpaces);
-		} else if (object instanceof JSONArray) {
-			return ((JSONArray)object).toString(indentSpaces);
-		} else if (object instanceof JSONObject) {
-			return new JSONObject(object.toString()).toString(indentSpaces);
-		} else {
-			return new JSONObject(object.toString()).toString(indentSpaces);
-		}
-	}
-
-	public static String clean(String json) {
-		return json.replace('\"', '\'').replaceAll("\\r\\n", "\n");
-	}
-
-	private String fix(String json) {
-		return json.replace("'", "\"");
-	}
-
-	private String fix2(String json) {
-		return json.replace("\"", "'");
-	}
-
 	@SneakyThrows
 	@Test
 	public void simpleTest() {
 		String serverUrl = "http://5.189.144.144/codenjoy-contest/board/player/0?code=000000000000";
 		String repo = "https://github.com/codenjoyme/codenjoy-javascript-client.git";
-
-//		mvc.perform(MockMvcRequestBuilders.get("/solutions/all"))
-//					.andExpect(status().isOk());
-
-//		assertGet("/solutions/all?serverUrl=" + encode(serverUrl),
-//
-//				"{}");
 
 		// given
 		// empty solutions at start
@@ -266,10 +134,4 @@ public class SmokeTest {
 		} while (!RUNNING.name().equals(solution.getStatus()));
 		return solutions;
 	}
-
-	@SneakyThrows
-	private String encode(String string) {
-		return URLEncoder.encode(string, StandardCharsets.UTF_8.name());
-	}
-
 }
