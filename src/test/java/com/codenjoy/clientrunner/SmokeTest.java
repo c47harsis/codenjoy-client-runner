@@ -2,38 +2,25 @@ package com.codenjoy.clientrunner;
 
 import com.codenjoy.clientrunner.dto.CheckRequest;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
+import com.codenjoy.clientrunner.model.Solution;
 import com.codenjoy.clientrunner.service.ClientServerService;
 import com.codenjoy.clientrunner.service.SolutionManager;
 import com.codenjoy.clientrunner.service.facade.DockerService;
 import com.codenjoy.clientrunner.service.facade.GitService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.List;
 
-import static com.codenjoy.clientrunner.model.Solution.Status.KILLED;
-import static com.codenjoy.clientrunner.model.Solution.Status.RUNNING;
+import static com.codenjoy.clientrunner.model.Solution.Status.*;
+import static junit.framework.TestCase.assertSame;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 
@@ -53,10 +40,12 @@ public class SmokeTest {
 	private GitService git;
 
 	@SpyBean
-	private SolutionManager solutions;
+	private SolutionManager solutionManager;
 
 	@Autowired
 	private ClientServerService service;
+	
+	private List<SolutionSummary> solutions;
 
 	@SneakyThrows
 	@Test
@@ -64,74 +53,96 @@ public class SmokeTest {
 		String serverUrl = "http://5.189.144.144/codenjoy-contest/board/player/0?code=000000000000";
 		String repo = "https://github.com/codenjoyme/codenjoy-javascript-client.git";
 
-		// given
-		// empty solutions at start
-		List<SolutionSummary> solutions = service.getAllSolutionsSummary(serverUrl);
+		// given empty solutions at start
+		refreshSolutions(serverUrl);
 		assertEquals(0, solutions.size());
 
-		// when
-		// try to check one solution
-		service.checkSolution(new CheckRequest(){{
-			setRepo(repo);
-			setServerUrl(serverUrl);
-		}});
+		// when try to check one solution
+		createSolution(serverUrl, repo);
+		waitForBuildSolution(serverUrl, 1);
 
-		// when
-		// wait for building
-		solutions = waitForNewSolution(serverUrl, 1);
-		SolutionSummary solution1 = solutions.get(0);
+		// then new solution in RUNNING mode
+		assertThat(solution(0)).hasId(1).inStatus(RUNNING);
 
-		// then
-		assertEquals(1, solution1.getId());
-		assertNotSame(null, solution1.getCreated());
-		assertNotSame(null, solution1.getStarted());
-		assertEquals(null, solution1.getFinished());
-		assertEquals(RUNNING.name(), solution1.getStatus());
+		// when run another solution for same player/code
+		createSolution(serverUrl, repo);
+		waitForBuildSolution(serverUrl, 2);
 
-		// when
-		// run another solution for same player/code
-		service.checkSolution(new CheckRequest(){{
-			setRepo(repo);
-			setServerUrl(serverUrl);
-		}});
-
-		// when
-		// wait for building
-		solutions = waitForNewSolution(serverUrl, 2);
-		solution1 = solutions.get(0);
-		SolutionSummary solution2 = solutions.get(1);
-
-
-		// one was KILLED
-		assertEquals(1, solution1.getId());
-		assertNotSame(null, solution1.getCreated());
-		assertNotSame(null, solution1.getStarted());
-		assertNotSame(null, solution1.getFinished());
-		assertEquals(KILLED.name(), solution1.getStatus());
-
+		// then one was KILLED
+		assertThat(solution(0)).hasId(1).inStatus(KILLED);
 		// another one is still RUNNING
-		assertEquals(2, solution2.getId());
-		assertNotSame(null, solution2.getCreated());
-		assertNotSame(null, solution2.getStarted());
-		assertEquals(null, solution2.getFinished());
-		assertEquals(RUNNING.name(), solution2.getStatus());
-
+		assertThat(solution(1)).hasId(2).inStatus(RUNNING);
 	}
 
-	private List<SolutionSummary> waitForNewSolution(String serverUrl, int total) throws InterruptedException {
-		List<SolutionSummary> solutions;
-		SolutionSummary solution = null;
+	public class AssertSolution {
+
+		private SolutionSummary solution;
+
+		public AssertSolution(SolutionSummary solution) {
+			this.solution = solution;
+		}
+
+		public AssertSolution hasId(int id) {
+			assertEquals(id, solution.getId());
+			return this;
+		}
+
+		public AssertSolution inStatus(Solution.Status status) {
+			assertEquals(status.name(), solution.getStatus());
+
+			switch (Solution.Status.valueOf(solution.getStatus())) {
+				case NEW :
+				case COMPILING :
+					assertNotSame(null, solution.getCreated());
+					assertSame(null, solution.getStarted());
+					assertSame(null, solution.getFinished());
+					break;
+				case RUNNING :
+					assertNotSame(null, solution.getCreated());
+					assertNotSame(null, solution.getStarted());
+					assertSame(null, solution.getFinished());
+					break;
+				case FINISHED :
+				case ERROR :
+				case KILLED :
+					assertNotSame(null, solution.getCreated());
+					assertNotSame(null, solution.getStarted());
+					assertNotSame(null, solution.getFinished());
+					break;
+
+			}
+			return this;
+		}
+	}
+
+	private AssertSolution assertThat(SolutionSummary solution) {
+		return new AssertSolution(solution);
+	}
+
+	private void refreshSolutions(String serverUrl) {
+		solutions = service.getAllSolutionsSummary(serverUrl);
+	}
+
+	private SolutionSummary solution(int index) {
+		return solutions.get(index);
+	}
+
+	private void createSolution(String serverUrl, String repo) {
+		service.checkSolution(new CheckRequest(){{
+			setRepo(repo);
+			setServerUrl(serverUrl);
+		}});
+	}
+
+	private void waitForBuildSolution(String serverUrl, int total) throws InterruptedException {
 		do {
 			Thread.sleep(1000);
-			solutions = service.getAllSolutionsSummary(serverUrl);
-
+			refreshSolutions(serverUrl);
 			if (solutions.size() != total) continue;
+		} while (!RUNNING.name().equals(last().getStatus()));
+	}
 
-			// then
-			// one solution exists
-			assertEquals(total, solutions.size());
-			solution = solutions.get(solutions.size() - 1);
-		} while (!RUNNING.name().equals(solution.getStatus()));
-		return solutions;
+	private SolutionSummary last() {
+		return solutions.get(solutions.size() - 1);
 	}
 }
