@@ -5,6 +5,7 @@ import org.springframework.util.Assert;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.codenjoy.clientrunner.model.Solution.Status.KILLED;
@@ -77,8 +78,8 @@ public class Solution {
     }
 
     public boolean allows(Token token) {
-        return playerId == token.getPlayerId()
-                && code == token.getCode();
+        return Objects.equals(playerId, token.getPlayerId())
+                && Objects.equals(code, token.getCode());
     }
 
     @RequiredArgsConstructor

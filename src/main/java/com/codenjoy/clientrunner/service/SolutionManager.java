@@ -20,7 +20,6 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -50,7 +49,7 @@ public class SolutionManager {
     public void runSolution(Token token, File sources) {
         Solution solution = Solution.from(token, sources);
         addDockerfile(solution);
-        killLastIfPresent(token);
+        kill(token);
 
         /* TODO: try to avoid copy Dockerfile.
             https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
@@ -119,6 +118,9 @@ public class SolutionManager {
             if (solution.getStatus() == KILLED) {
                 solution.setStatus(FINISHED);
             }
+            if (solution.getStatus() == RUNNING) {
+                solution.setStatus(ERROR);
+            }
             docker.removeContainer(solution);
             // TODO: remove images
         });
@@ -134,9 +136,8 @@ public class SolutionManager {
         }
     }
 
-    private void killLastIfPresent(Token token) {
-        getSolutions(token).stream()
-                .filter(s -> s.getStatus().isActive())
+    private void kill(Token token) {
+        getSolutions(token)
                 .forEach(this::kill);
     }
 
