@@ -75,7 +75,11 @@ public class SolutionManager {
     }
 
     public void kill(Token token, int solutionId) {
-        kill(getSolution(token, solutionId));
+        Solution solution = getSolution(token, solutionId);
+        if (solution == null) {
+            return;
+        }
+        kill(solution);
     }
 
     public List<Solution> getSolutions(Token token) {
@@ -88,7 +92,7 @@ public class SolutionManager {
         return getSolutions(token).stream()
                 .filter(s -> s.getId() == solutionId)
                 .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
+                .orElse(null);
     }
 
     public List<SolutionSummary> getAllSolutionsSummary(Token token) {

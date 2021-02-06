@@ -60,7 +60,11 @@ public class ClientServerService {
 
     public SolutionSummary getSolutionSummary(String serverUrl, int solutionId) {
         Token token = parse(serverUrl);
-        return new SolutionSummary(solutionManager.getSolution(token, solutionId));
+        Solution solution = solutionManager.getSolution(token, solutionId);
+        if (solution == null) {
+            throw new IllegalArgumentException("Solution doesn't exist");
+        }
+        return new SolutionSummary(solution);
     }
 
     public List<String> getBuildLogs(String serverUrl, int solutionId, int offset) {
@@ -76,7 +80,7 @@ public class ClientServerService {
     {
         Token token = parse(serverUrl);
         Solution solution = solutionManager.getSolution(token, solutionId);
-        if (Arrays.asList(excluded).contains(solution.getStatus())) {
+        if (solution == null || Arrays.asList(excluded).contains(solution.getStatus())) {
             return Collections.emptyList();
         }
         return readFile(solution.getSources() + logFile, offset);
