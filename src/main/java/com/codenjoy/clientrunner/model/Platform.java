@@ -7,7 +7,9 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public enum Platform {
 
-    JAVA("pom.xml"), NODEJS("package.json");
+    JAVA("pom.xml"),
+    NODEJS("package.json"),
+    RUBY("Gemfile");
 
     private final String filename;
 
