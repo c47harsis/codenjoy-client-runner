@@ -155,4 +155,13 @@ public class SolutionManager {
             solution.setStatus(ERROR);
         }
     }
+
+    // for testing only
+    void clear() {
+        solutions.clear();
+    }
+
+    void add(Solution solution) {
+        solutions.add(solution);
+    }
 }

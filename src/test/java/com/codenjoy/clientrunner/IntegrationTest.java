@@ -28,10 +28,7 @@ import static org.junit.Assert.assertNotSame;
 		properties = "spring.main.allow-bean-definition-overriding=true")
 @WebAppConfiguration
 @RunWith(SpringRunner.class)
-public class SmokeTest {
-
-	@Autowired
-	private WebApplicationContext context;
+public class IntegrationTest {
 
 	@SpyBean
 	private DockerService docker;
