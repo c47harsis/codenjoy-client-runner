@@ -145,7 +145,8 @@ public class SolutionManager {
         String language = solution.getPlatform().getFolderName();
         try {
             File destination = new File(solution.getSources(), "Dockerfile");
-            URL url = getClass().getResource("/dockerfiles/" + language + "/Dockerfile");
+            String path = config.getDockerfilesFolder() + "/" + language + "/Dockerfile";
+            URL url = getClass().getResource(path);
             FileUtils.copyURLToFile(url, destination);
         } catch (IOException e) {
             log.error("Can not add Dockerfile to solution with id: {}", solution.getId());
