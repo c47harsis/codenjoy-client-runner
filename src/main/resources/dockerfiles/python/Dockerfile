@@ -1,0 +1,8 @@
+FROM python:3
+
+ARG CODENJOY_URL
+ENV CODENJOY_URL_VAR=$CODENJOY_URL
+
+COPY . /app
+
+ENTRYPOINT python -u /app/main.py "${CODENJOY_URL_VAR}"
