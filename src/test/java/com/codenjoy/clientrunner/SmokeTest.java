@@ -20,7 +20,7 @@ import org.springframework.web.context.WebApplicationContext;
 import java.util.List;
 
 import static com.codenjoy.clientrunner.model.Solution.Status.*;
-import static junit.framework.TestCase.assertSame;
+import static junit.framework.TestCase.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 
@@ -46,10 +46,11 @@ public class SmokeTest {
 	private ClientServerService service;
 	
 	private List<SolutionSummary> solutions;
+	private List<String> logs;
 
 	@SneakyThrows
 	@Test
-	public void simpleTest() {
+	public void shouldCheckTwoSolutions_forSameServerUrlAndRepo() {
 		String serverUrl = "http://5.189.144.144/codenjoy-contest/board/player/0?code=000000000000";
 		String repo = "https://github.com/codenjoyme/codenjoy-javascript-client.git";
 
@@ -72,6 +73,64 @@ public class SmokeTest {
 		assertThat(solution(0)).hasId(1).inStatus(KILLED);
 		// another one is still RUNNING
 		assertThat(solution(1)).hasId(2).inStatus(RUNNING);
+
+		// when get RUNNING solution
+		SolutionSummary solution = service.getSolutionSummary(serverUrl, 2);
+		assertThat(solution).hasId(2).inStatus(RUNNING);
+
+		// when get KILLED solution
+		solution = service.getSolutionSummary(serverUrl, 1);
+		assertThat(solution).hasId(1).inStatus(KILLED);
+
+		// when get build logs of RUNNING solution
+		readBuildLogs(serverUrl, 2);
+		assertLastLineStartsWith("Successfully built");
+
+		// when get running logs of RUNNING solution
+		readRuntimeLogs(serverUrl, 2);
+		assertFistLineStartsWith("STDOUT: Got url from Environment: " + serverUrl);
+
+		// when get build logs of KILLED solution
+		readBuildLogs(serverUrl, 1);
+		assertLastLineStartsWith("Successfully built");
+
+		// when get running logs of KILLED solution
+		readRuntimeLogs(serverUrl, 1);
+		assertFistLineStartsWith("STDOUT: Got url from Environment: " + serverUrl);
+
+		// when kill RUNNING solution
+		service.killSolution(serverUrl, 2);
+		refreshSolutions(serverUrl);
+
+		// then one was KILLED
+		assertThat(solution(0)).hasId(1).inStatus(KILLED);
+		// another one is also KILLED
+		assertThat(solution(1)).hasId(2).inStatus(KILLED);
+
+	}
+
+	@SneakyThrows
+	private void readRuntimeLogs(String serverUrl, int solutionId) {
+		do {
+			logs = service.getRuntimeLogs(serverUrl, solutionId, 0);
+			Thread.sleep(1000);
+		} while (logs.isEmpty());
+	}
+
+	@SneakyThrows
+	private void readBuildLogs(String serverUrl, int solutionId) {
+		do {
+			logs = service.getBuildLogs(serverUrl, solutionId, 0);
+			Thread.sleep(1000);
+		} while (logs.isEmpty());
+	}
+
+	private void assertFistLineStartsWith(String prefix) {
+		assertTrue(logs.get(0).startsWith(prefix));
+	}
+
+	private void assertLastLineStartsWith(String prefix) {
+		assertTrue(logs.get(logs.size() - 1).startsWith(prefix));
 	}
 
 	public class AssertSolution {
