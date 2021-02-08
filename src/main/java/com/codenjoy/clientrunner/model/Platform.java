@@ -9,7 +9,8 @@ public enum Platform {
 
     JAVA("pom.xml"),
     NODEJS("package.json"),
-    RUBY("Gemfile");
+    RUBY("Gemfile"),
+    PYTHON("main.py");
 
     private final String filename;
 
