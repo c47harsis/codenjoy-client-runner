@@ -107,7 +107,7 @@ public class ClientServerServiceTest {
 			fail("Expected exception");
 		} catch (IllegalArgumentException e) {
 			// then
-			assertEquals("For this token not found any solution with id '234'",
+			assertEquals("For this token not found any solution with id \"234\"",
 					e.getMessage());
 		}
 		verify(docker, never()).removeContainer(anyString());
@@ -136,7 +136,7 @@ public class ClientServerServiceTest {
 			fail("Expected exception");
 		} catch (IllegalArgumentException e) {
 			// then
-			assertEquals("For this token not found any solution with id '1'",
+			assertEquals("For this token not found any solution with id \"1\"",
 					e.getMessage());
 		}
 		verify(docker, never()).removeContainer(anyString());

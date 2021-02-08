@@ -77,7 +77,8 @@ public class SolutionManager {
     public void kill(Token token, int solutionId) {
         Solution solution = getSolution(token, solutionId);
         if (solution == null) {
-            return;
+            throw new IllegalArgumentException(
+                    "For this token not found any solution with id \"" + solutionId + "\"");
         }
         kill(solution);
     }
