@@ -9,6 +9,7 @@ service:
   serverRegex: "^https?://[0-9A-Za-z_.\\-:]+/codenjoy-contest/board/player/([\\w]+)\\?code=([\\w]+)"
 
 docker:
+  dockerfilesFolder: "/dockerfiles"
   container:
     memoryLimitMB: 0
     cpuPeriod: 100000
