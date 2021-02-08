@@ -64,7 +64,7 @@ public class SolutionManager {
 
         try {
             solution.setStatus(COMPILING);
-            docker.buildImage(solution,
+            docker.buildImage(sources, solution.getServerUrl(),
                     new LogWriter(solution, true),
                     imageId -> runContainer(solution, imageId));
         } catch (Throwable e) {
@@ -88,7 +88,9 @@ public class SolutionManager {
         return getSolutions(token).stream()
                 .filter(s -> s.getId() == solutionId)
                 .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("For this token not found any solution with id '%s'",
+                                solutionId)));
     }
 
     public List<SolutionSummary> getAllSolutionsSummary(Token token) {
@@ -109,11 +111,11 @@ public class SolutionManager {
         String containerId = docker.createContainer(imageId, hostConfig);
         solution.setContainerId(containerId);
 
-        docker.startContainer(solution);
+        docker.startContainer(solution.getContainerId());
 
-        docker.logContainer(solution, new LogWriter(solution, false));
+        docker.logContainer(solution.getContainerId(), new LogWriter(solution, false));
 
-        docker.waitContainer(solution, () -> {
+        docker.waitContainer(solution.getContainerId(), () -> {
             solution.setFinished(LocalDateTime.now());
             if (solution.getStatus() == KILLED) {
                 solution.setStatus(FINISHED);
@@ -121,7 +123,7 @@ public class SolutionManager {
             if (solution.getStatus() == RUNNING) {
                 solution.setStatus(ERROR);
             }
-            docker.removeContainer(solution);
+            docker.removeContainer(solution.getContainerId());
             // TODO: remove images
         });
     }
@@ -132,7 +134,7 @@ public class SolutionManager {
         }
         solution.setStatus(KILLED);
         if (solution.getContainerId() != null) {
-            docker.killContainer(solution);
+            docker.killContainer(solution.getContainerId());
         }
     }
 

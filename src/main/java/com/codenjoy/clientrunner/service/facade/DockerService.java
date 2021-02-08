@@ -1,6 +1,5 @@
 package com.codenjoy.clientrunner.service.facade;
 
-import com.codenjoy.clientrunner.model.Solution;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
@@ -19,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -50,16 +50,16 @@ public class DockerService {
         }
     }
 
-    public void killContainer(Solution solution) {
-        if (isContainerRunning(solution)) {
-            docker.killContainerCmd(solution.getContainerId())
+    public void killContainer(String containerId) {
+        if (isContainerRunning(containerId)) {
+            docker.killContainerCmd(containerId)
                     .exec();
         }
     }
 
-    public boolean isContainerRunning(Solution solution) {
+    public boolean isContainerRunning(String containerId) {
         try {
-            return docker.inspectContainerCmd(solution.getContainerId())
+            return docker.inspectContainerCmd(containerId)
                     .exec()
                     .getState()
                     .getRunning();
@@ -68,9 +68,9 @@ public class DockerService {
         }
     }
 
-    public void removeContainer(Solution solution) {
+    public void removeContainer(String containerId) {
         try {
-            docker.removeContainerCmd(solution.getContainerId())
+            docker.removeContainerCmd(containerId)
                     .withRemoveVolumes(true)
                     .exec();
         } catch (NotFoundException e) {
@@ -78,8 +78,8 @@ public class DockerService {
         }
     }
 
-    public void waitContainer(Solution solution, Runnable onComplete) {
-        docker.waitContainerCmd(solution.getContainerId())
+    public void waitContainer(String containerId, Runnable onComplete) {
+        docker.waitContainerCmd(containerId)
                 .exec(new ResultCallback.Adapter<>() {
                     @SneakyThrows
                     @Override
@@ -90,8 +90,8 @@ public class DockerService {
                 });
     }
 
-    public void startContainer(Solution solution) {
-        docker.startContainerCmd(solution.getContainerId()).exec();
+    public void startContainer(String containerId) {
+        docker.startContainerCmd(containerId).exec();
     }
 
     public String createContainer(String imageId, HostConfig hostConfig) {
@@ -100,9 +100,9 @@ public class DockerService {
                 .exec().getId();
     }
 
-    public void buildImage(Solution solution, LogWriter writer, Consumer<String> onCompete) {
-        docker.buildImageCmd(solution.getSources())
-                .withBuildArg(SERVER_PARAMETER, solution.getServerUrl())
+    public void buildImage(File sources, String serverUrl, LogWriter writer, Consumer<String> onCompete) {
+        docker.buildImageCmd(sources)
+                .withBuildArg(SERVER_PARAMETER, serverUrl)
                 .exec(new BuildImageResultCallback() {
                     private String imageId;
                     private String error;
@@ -130,8 +130,8 @@ public class DockerService {
                 });
     }
 
-    public void logContainer(Solution solution, LogWriter writer) {
-        docker.logContainerCmd(solution.getContainerId())
+    public void logContainer(String containerId, LogWriter writer) {
+        docker.logContainerCmd(containerId)
                 .withStdOut(true)
                 .withStdErr(true)
                 .withFollowStream(true)
