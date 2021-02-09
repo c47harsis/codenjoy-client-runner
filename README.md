@@ -39,7 +39,7 @@ Variable | Defaults | Description
 `DOCKER_CPU_PERIOD` | 100000 | [Limit the CPU CFS (Completely Fair Scheduler) period](https://docs.docker.com/engine/reference/commandline/build/)
 `DOCKER_CPU_QUOTA` | -1 | [Limit the CPU CFS quota](https://docs.docker.com/engine/reference/commandline/build/)
 
-### Run in Docker container  [Recommended]
+### Run in Docker container  __[Recommended]__
 The command below will build and start a container with the app and with
 default config:
 ```
@@ -57,3 +57,36 @@ change `docker-compose/client-runner.env` file with variables from the table abo
 ```
 
 [0]: (https://github.com/codenjoyme/codenjoy)
+
+## Client platforms support
+At the moment solution runner supports client, written in:
+- Java with Maven
+- Ruby 
+- Python
+- JavaScript (Node.js)
+
+### How to add a new platform support 
+There are an enum class `com.codenjoy.clientrunner.model.Platform`
+and folder with dockerfiles in `src/main/resources`. In order to add support for
+another platform, you should define this platform in the enum following already existing
+principle, and after that create valid Dockerfile and store it in 
+`src/main/resources/dockerfiles/<platform_name_lowercase>/Dockerfile`.
+
+For example, lets add Python support (which is already added, of course):
+1. In `com.codenjoy.clientrunner.model.Platform` write `PYTHON("runner.py")`, where 
+`"runner.py"` is Python-specific project file which helps
+   client runner automatically detect incoming solution's platform.
+    
+2. Create new Dockerfile and store it in `src/main/resources/dockerfiles/python/Dockerfile`:
+```
+FROM python:3
+
+ARG CODENJOY_URL
+ENV CODENJOY_URL_VAR=$CODENJOY_URL
+
+COPY . /app
+
+ENTRYPOINT python -u /app/main.py "${CODENJOY_URL_VAR}"
+```
+_Pay attention that there is necessary `CODENJOY_URL` argument which is URL with a player's id and code. It's automatically 
+passed to all launched clients._
