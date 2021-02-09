@@ -32,9 +32,9 @@ For configuring application's behaviour you can set these environment variables.
 
 Variable | Defaults | Description
 ---------|:----------:|------------
-`SERVICE_CONTEXT` | `/client-runner` | Web app context
-`SOLUTIONS_FOLDER_PATH` | `./solutions` | Where to store downloaded solutions
-`SOLUTION_FOLDER_PATTERN` | `yyyy-MM-dd'_'HH-mm-ss` | How to name each solution folder
+`SERVICE_CONTEXT` | /client-runner | Web app context
+`SOLUTIONS_FOLDER_PATH` | ./solutions | Where to store downloaded solutions
+`SOLUTION_FOLDER_PATTERN` | yyyy-MM-dd'_'HH-mm-ss | How to name each solution folder
 `DOCKER_MEMORY_LIMIT_MB` | 0 | [Memory limit in MB](https://docs.docker.com/engine/reference/commandline/build/)
 `DOCKER_CPU_PERIOD` | 100000 | [Limit the CPU CFS (Completely Fair Scheduler) period](https://docs.docker.com/engine/reference/commandline/build/)
 `DOCKER_CPU_QUOTA` | -1 | [Limit the CPU CFS quota](https://docs.docker.com/engine/reference/commandline/build/)
