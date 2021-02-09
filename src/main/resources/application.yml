@@ -1,16 +1,16 @@
 server:
   servlet:
-    context-path: ${SERVICE_CONTEXT:/codenjoy-client-runner}
+    context-path: ${SERVICE_CONTEXT:/client-runner}
 
 service:
   solutionFolder:
-    path: ${SOLUTION_FOLDER_PATH:./solutions}
+    path: ${SOLUTIONS_FOLDER_PATH:./solutions}
     pattern: ${SOLUTION_FOLDER_PATTERN:yyyy-MM-dd'_'HH-mm-ss}
   serverRegex: "^https?://[0-9A-Za-z_.\\-:]+/codenjoy-contest/board/player/([\\w]+)\\?code=([\\w]+)"
 
 docker:
   dockerfilesFolder: /dockerfiles
   container:
-    memoryLimitMB: ${DOCKER_MEMORY_LIMIT:0}
+    memoryLimitMB: ${DOCKER_MEMORY_LIMIT_MB:0}
     cpuPeriod: ${DOCKER_CPU_PERIOD:100000}
     cpuQuota: ${DOCKER_CPU_QUOTA:-1}
