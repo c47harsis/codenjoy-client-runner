@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.ResponseEntity.ok;
+import static org.springframework.http.ResponseEntity.status;
 
 @RestController("/solutions")
 @AllArgsConstructor
@@ -47,5 +48,10 @@ public class ClientServerController {
     ResponseEntity<?> getBuildLogs(@RequestParam int solutionId, @RequestParam String serverUrl,
                                    @RequestParam(defaultValue = "0") int offset) {
         return ok(service.getBuildLogs(serverUrl, solutionId, offset));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 }

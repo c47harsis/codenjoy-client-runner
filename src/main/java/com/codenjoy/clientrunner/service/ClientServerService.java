@@ -62,7 +62,7 @@ public class ClientServerService {
         Token token = parse(serverUrl);
         Solution solution = solutionManager.getSolution(token, solutionId);
         if (solution == null) {
-            throw new IllegalArgumentException("Solution doesn't exist");
+            throw new IllegalArgumentException("Solution with id: " + solutionId + " not found");
         }
         return new SolutionSummary(solution);
     }
@@ -80,7 +80,10 @@ public class ClientServerService {
     {
         Token token = parse(serverUrl);
         Solution solution = solutionManager.getSolution(token, solutionId);
-        if (solution == null || Arrays.asList(excluded).contains(solution.getStatus())) {
+        if (solution == null) {
+            throw new IllegalArgumentException("Solution with id: " + solutionId + " not found");
+        }
+        if (Arrays.asList(excluded).contains(solution.getStatus())) {
             return Collections.emptyList();
         }
         return readFile(solution.getSources() + logFile, offset);
