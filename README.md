@@ -8,6 +8,6 @@ custom implementation of an algorithm. In such circumstances there are some prob
 inability to save the history of attempts in one place, and another, which is more important, even if 
 it was possible, we could not be sure if the attempts are successful of not until we launch them by ourselves.
 
-So this application intended to solve these problems described above.
+So this application is intended to solve these problems described above.
 
 [0]: (https://github.com/codenjoyme/codenjoy)
