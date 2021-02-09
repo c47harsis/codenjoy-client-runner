@@ -14,6 +14,13 @@ brings [Codenjoy][0] and it's users several new opportunities. For example,
 it could be also a _testing and hiring system_ for modern and progressive
 companies and teams.
 
+## How it works
+The app uses [Git](https://git-scm.com/) and [Docker](https://www.docker.com/) for its purposes. 
+It consumes requests that contains URL of public Git repository with a player's solution
+and link to Codenjoy server with the player's id and code. Further, it pulls the solution 
+from master branch of the repo, save it locally with, build it and run it in new separate Docker container.
+Build and runtime logs accumulate in the solution folder and can be given to front-end.
+
 
 
 [0]: (https://github.com/codenjoyme/codenjoy)
