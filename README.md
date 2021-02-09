@@ -73,7 +73,7 @@ principle, and after that create valid Dockerfile and store it in
 `src/main/resources/dockerfiles/<platform_name_lowercase>/Dockerfile`.
 
 For example, lets add Python support (which is already added, of course):
-1. In `com.codenjoy.clientrunner.model.Platform` write `PYTHON("runner.py")`, where 
+1. In `com.codenjoy.clientrunner.model.Platform` write `PYTHON("main.py")`, where 
 `"runner.py"` is Python-specific project file which helps
    client runner automatically detect incoming solution's platform.
     
