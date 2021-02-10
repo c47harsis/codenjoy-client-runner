@@ -58,12 +58,6 @@
 			<version>${jgit.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-testng</artifactId>
-			<version>0.2.9</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>${lombok.version}</version>
@@ -78,12 +72,6 @@
 			<groupId>org.kohsuke</groupId>
 			<artifactId>github-api</artifactId>
 			<version>${github-api.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<version>7.3.0</version>
-			<scope>test</scope>
 		</dependency>
 
 		<!-- WEB UI -->
