@@ -52,14 +52,9 @@ public class ClientServerService {
         return solutionManager.getSolutionSummary(token, solutionId);
     }
 
-    public List<String> getBuildLogs(String serverUrl, int solutionId, int offset) {
+    public List<String> getLogs(String serverUrl, int solutionId, LogType logType, int offset) {
         Token token = parse(serverUrl);
-        return solutionManager.getBuildLogs(token, solutionId, offset);
-    }
-
-    public List<String> getRuntimeLogs(String serverUrl, int solutionId, int offset) {
-        Token token = parse(serverUrl);
-        return solutionManager.getRuntimeLogs(token, solutionId, offset);
+        return solutionManager.getLogs(token, solutionId, logType, offset);
     }
 
     private Token parse(String serverUrl) {
