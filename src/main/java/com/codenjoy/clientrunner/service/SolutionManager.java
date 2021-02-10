@@ -2,13 +2,14 @@ package com.codenjoy.clientrunner.service;
 
 import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
+import com.codenjoy.clientrunner.exception.SolutionNotFoundException;
 import com.codenjoy.clientrunner.model.Solution;
 import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.DockerService;
 import com.codenjoy.clientrunner.service.facade.LogWriter;
 import com.github.dockerjava.api.model.HostConfig;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
@@ -17,11 +18,13 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.codenjoy.clientrunner.model.Solution.Status.*;
 import static java.util.stream.Collectors.toList;
@@ -45,19 +48,16 @@ public class SolutionManager {
     }
 
     // TODO: Refactor this
-    @SneakyThrows
     public void runSolution(Token token, File sources) {
         Solution solution = Solution.from(token, sources);
-        addDockerfile(solution);
-        kill(token);
-
-        /* TODO: try to avoid copy Dockerfile.
-            https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
+        getSolutions(token).forEach(this::kill);
         solutions.add(solution);
 
+        /* TODO: try to avoid copy Dockerfile. https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
+        addDockerfile(solution);
+
         if (!solution.getStatus().isActive()) {
-            log.debug("Attempt to run inactive solution " +
-                    "with id: {} and status: {}",
+            log.debug("Attempt to run inactive solution with id: {} and status: {}",
                     solution.getId(), solution.getStatus());
             return;
         }
@@ -75,36 +75,61 @@ public class SolutionManager {
     }
 
     public void kill(Token token, int solutionId) {
-        Solution solution = getSolution(token, solutionId);
-        if (solution == null) {
-            throw new IllegalArgumentException(
-                    "For this token not found any solution with id \"" + solutionId + "\"");
-        }
+        Solution solution = getSolution(token, solutionId)
+                .orElseThrow(() -> new SolutionNotFoundException(solutionId));
         kill(solution);
     }
 
-    public List<Solution> getSolutions(Token token) {
-        return solutions.stream()
-                .filter(s -> s.allows(token))
-                .collect(toList());
+    public SolutionSummary getSolutionSummary(Token token, int solutionId) {
+        return getSolution(token, solutionId)
+                .map(SolutionSummary::new)
+                .orElseThrow(() -> new SolutionNotFoundException(solutionId));
     }
 
-    public Solution getSolution(Token token, int solutionId) {
-        return getSolutions(token).stream()
-                .filter(s -> s.getId() == solutionId)
-                .findFirst()
-                .orElse(null);
-    }
-
-    public List<SolutionSummary> getAllSolutionsSummary(Token token) {
+    public List<SolutionSummary> getSolutionsSummary(Token token) {
         return getSolutions(token).stream()
                 .map(SolutionSummary::new)
                 .sorted(Comparator.comparingInt(SolutionSummary::getId))
                 .collect(toList());
     }
 
+    public List<String> getBuildLogs(Token token, int solutionId, int offset) {
+        Solution solution = getSolution(token, solutionId)
+                .orElseThrow(() -> new SolutionNotFoundException(solutionId));
+
+        if (solution.getStatus().getStage() < COMPILING.getStage()) {
+            return Collections.emptyList();
+        }
+
+        return getLogs(solution, LogType.BUILD, offset);
+    }
+
+    public List<String> getRuntimeLogs(Token token, int solutionId, int offset) {
+        Solution solution = getSolution(token, solutionId)
+                .orElseThrow(() -> new SolutionNotFoundException(solutionId));
+
+        if (solution.getStatus().getStage() < RUNNING.getStage()) {
+            return Collections.emptyList();
+        }
+
+        return getLogs(solution, LogType.RUNTIME, offset);
+    }
+
+    private List<Solution> getSolutions(Token token) {
+        return solutions.stream()
+                .filter(s -> s.allows(token))
+                .collect(toList());
+    }
+
+    private Optional<Solution> getSolution(Token token, int solutionId) {
+        return getSolutions(token).stream()
+                .filter(s -> s.getId() == solutionId)
+                .findFirst();
+    }
+
     private void runContainer(Solution solution, String imageId) {
         if (solution.getStatus() == KILLED) {
+            log.info("Attempt to run killed solution with id: {}", solution.getId());
             return;
         }
         solution.setImageId(imageId);
@@ -141,16 +166,11 @@ public class SolutionManager {
         }
     }
 
-    private void kill(Token token) {
-        getSolutions(token)
-                .forEach(this::kill);
-    }
-
     private void addDockerfile(Solution solution) {
-        String language = solution.getPlatform().getFolderName();
+        String platformFolder = solution.getPlatform().getFolderName();
         try {
             File destination = new File(solution.getSources(), "Dockerfile");
-            String path = config.getDockerfilesFolder() + "/" + language + "/Dockerfile";
+            String path = config.getDockerfilesFolder() + "/" + platformFolder + "/Dockerfile";
             URL url = getClass().getResource(path);
             FileUtils.copyURLToFile(url, destination);
         } catch (IOException e) {
@@ -159,12 +179,23 @@ public class SolutionManager {
         }
     }
 
-    // for testing only
-    void clear() {
-        solutions.clear();
+    private List<String> getLogs(Solution solution, LogType type, int offset) {
+        String logFilePath = solution.getSources() + "/" + type.filename;
+        try (Stream<String> log = Files.lines(Paths.get(logFilePath))) {
+            return log.skip(offset).collect(Collectors.toList());
+        } catch (IOException e) {
+            log.error("Log file not exists: " + logFilePath);
+            throw new IllegalStateException("Solution with id: " + solution.getId()
+                    + " is in " + solution.getStatus() + " status, but build log not exists");
+        }
     }
 
-    void add(Solution solution) {
-        solutions.add(solution);
+    @Getter
+    @RequiredArgsConstructor
+    private enum LogType {
+        BUILD("build.log"),
+        RUNTIME("app.log");
+
+        private final String filename;
     }
 }
