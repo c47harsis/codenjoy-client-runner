@@ -3,6 +3,7 @@ package com.codenjoy.clientrunner.service;
 import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.exception.SolutionNotFoundException;
+import com.codenjoy.clientrunner.component.IdGenerator;
 import com.codenjoy.clientrunner.model.Solution;
 import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.DockerService;
@@ -34,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 public class SolutionManager {
 
+    private final IdGenerator idGenerator;
     private final DockerConfig config;
     private HostConfig hostConfig;
     private final DockerService docker;
@@ -49,8 +51,10 @@ public class SolutionManager {
 
     // TODO: Refactor this
     public void runSolution(Token token, File sources) {
-        Solution solution = Solution.from(token, sources);
         getSolutions(token).forEach(this::kill);
+
+        Solution solution = Solution.from(token, sources);
+        solution.setId(idGenerator.next());
         solutions.add(solution);
 
         /* TODO: try to avoid copy Dockerfile. https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */

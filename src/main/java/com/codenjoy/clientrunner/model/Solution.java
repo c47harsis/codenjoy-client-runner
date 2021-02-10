@@ -19,12 +19,12 @@ public class Solution {
 
     private static final AtomicInteger idCounter = new AtomicInteger(0);
 
-    private final int id;
     private final String playerId;
     private final String code;
     private final String serverUrl;
     private final File sources;
     private final Platform platform;
+    private Integer id;
     private LocalDateTime created;
     private LocalDateTime started;
     private LocalDateTime finished;
@@ -33,7 +33,6 @@ public class Solution {
     private volatile Status status;
 
     private Solution(String playerId, String code, String serverUrl, File sources, Platform platform) {
-        this.id = idCounter.incrementAndGet();
         this.playerId = playerId;
         this.code = code;
         this.serverUrl = serverUrl;
