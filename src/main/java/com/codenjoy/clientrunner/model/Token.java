@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 @Data
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Token {
@@ -16,6 +18,8 @@ public final class Token {
     private final String code;
 
     public static Token from(String serverUrl, String urlPattern) {
+        checkArgument(serverUrl != null, "Server URL must not be null");
+        checkArgument(urlPattern != null, "URL pattern must not be null");
         Pattern serverUrlPattern = Pattern.compile(urlPattern);
         Matcher matcher = serverUrlPattern.matcher(serverUrl);
         if (!matcher.matches()) {
