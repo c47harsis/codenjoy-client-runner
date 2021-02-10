@@ -20,6 +20,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import static com.codenjoy.clientrunner.model.Solution.Status.ERROR;
 import static org.mockito.ArgumentMatchers.any;
@@ -59,6 +60,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
     @AfterMethod
     public void cleanup() {
         FileUtils.deleteDirectory(sources);
+        solutionManager.killAll(token);
         reset(dockerService);
     }
 
@@ -87,17 +89,19 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         doThrow(RuntimeException.class)
                 .when(dockerService)
                 .buildImage(isA(File.class), anyString(), any(), any());
+        int lastId = getLastSolutionId();
 
         // when
         solutionManager.runSolution(token, sources);
 
         // then
-        assertEquals(ERROR.name(), solutionManager.getSolutionSummary(token, 0).getStatus());
+        assertEquals(solutionManager.getSolutionSummary(token, lastId + 1).getStatus(), ERROR.name());
     }
 
     @Test
     public void shouldKillLastSolutionBeforeRunNew_whenRunSolution_withValidTokenAndSources() {
         // given
+        int lastId = getLastSolutionId();
         solutionManager.runSolution(token, sources);
         solutionManager.runSolution(token, sources);
 
@@ -105,13 +109,18 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         solutionManager.runSolution(token, sources);
 
         // then
-        assertFalse(statusOfSolutionById(1).isActive());
-        assertFalse(statusOfSolutionById(2).isActive());
-        assertTrue(statusOfSolutionById(3).isActive());
+        assertFalse(statusOfSolutionById(++lastId).isActive());
+        assertFalse(statusOfSolutionById(++lastId).isActive());
+        assertTrue(statusOfSolutionById(++lastId).isActive());
     }
 
     private Solution.Status statusOfSolutionById(int solutionId) {
         SolutionSummary solution = solutionManager.getSolutionSummary(token, solutionId);
         return Solution.Status.valueOf(solution.getStatus());
+    }
+
+    private int getLastSolutionId() {
+        List<SolutionSummary> solutions = solutionManager.getAllSolutionSummary(token);
+        return solutions.isEmpty() ? 0 : solutions.get(solutions.size() - 1).getId();
     }
 }

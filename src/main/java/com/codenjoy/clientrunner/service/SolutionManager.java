@@ -74,6 +74,10 @@ public class SolutionManager {
         }
     }
 
+    public void killAll(Token token) {
+        getSolutions(token).forEach(this::kill);
+    }
+
     public void kill(Token token, int solutionId) {
         Solution solution = getSolution(token, solutionId)
                 .orElseThrow(() -> new SolutionNotFoundException(solutionId));
@@ -86,7 +90,7 @@ public class SolutionManager {
                 .orElseThrow(() -> new SolutionNotFoundException(solutionId));
     }
 
-    public List<SolutionSummary> getSolutionsSummary(Token token) {
+    public List<SolutionSummary> getAllSolutionSummary(Token token) {
         return getSolutions(token).stream()
                 .map(SolutionSummary::new)
                 .sorted(Comparator.comparingInt(SolutionSummary::getId))

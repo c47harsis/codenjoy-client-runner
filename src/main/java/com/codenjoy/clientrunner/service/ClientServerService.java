@@ -44,7 +44,7 @@ public class ClientServerService {
 
     public List<SolutionSummary> getAllSolutionsSummary(String serverUrl) {
         Token token = parse(serverUrl);
-        return solutionManager.getSolutionsSummary(token);
+        return solutionManager.getAllSolutionSummary(token);
     }
 
     public SolutionSummary getSolutionSummary(String serverUrl, int solutionId) {
