@@ -12,21 +12,21 @@ public class TokenTest {
     private static final String PLAYER_ID = "SuperMario";
     private static final String CODE = "000000000000";
 
-    private static final String VALID_SERvER_URL
+    private static final String VALID_SERVER_URL
             = "http://5.189.144.144/codenjoy-contest/board/player/" + PLAYER_ID + "?code=" + CODE;
 
 
     public static Token generateValidToken() {
-        return Token.from(VALID_SERvER_URL, SERVER_URL_PATTERN);
+        return Token.from(VALID_SERVER_URL, SERVER_URL_PATTERN);
     }
 
     @Test
     public void shouldGenerateValidToken_whenValidServerUrlPassed() {
         // when
-        Token result = Token.from(VALID_SERvER_URL, SERVER_URL_PATTERN);
+        Token result = Token.from(VALID_SERVER_URL, SERVER_URL_PATTERN);
 
         // then
-        assertEquals(VALID_SERvER_URL, result.getServerUrl());
+        assertEquals(VALID_SERVER_URL, result.getServerUrl());
         assertEquals(PLAYER_ID, result.getPlayerId());
         assertEquals(CODE, result.getCode());
     }
