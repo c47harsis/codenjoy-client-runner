@@ -51,7 +51,7 @@ public class Solution {
         }
         Platform platform = detectPlatform(sources);
         if (platform == null) {
-            throw  new IllegalArgumentException("Solution platform is not supported");
+            throw new IllegalArgumentException("Solution platform not supported");
         }
         return new Solution(token.getPlayerId(), token.getCode(), token.getServerUrl(), sources, platform);
     }
@@ -82,20 +82,17 @@ public class Solution {
                 && Objects.equals(code, token.getCode());
     }
 
+    @Getter
     @RequiredArgsConstructor
     public enum Status {
-
-        NEW(true),
-        COMPILING(true),
-        RUNNING(true),
-        FINISHED(false),
-        ERROR(false),
-        KILLED(false);
+        NEW(true, 0),
+        COMPILING(true, 1),
+        RUNNING(true, 2),
+        FINISHED(false, 3),
+        ERROR(false, 3),
+        KILLED(false, 3);
 
         private final boolean active;
-
-        public boolean isActive() {
-            return active;
-        }
+        private final int stage;
     }
 }
