@@ -6,7 +6,6 @@ import com.codenjoy.clientrunner.model.Solution;
 import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.DockerService;
 import lombok.SneakyThrows;
-import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -21,6 +20,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Random;
 
 import static com.codenjoy.clientrunner.model.Solution.Status.ERROR;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,11 +44,11 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
     @BeforeMethod
     @SneakyThrows
     public void generateJavaSources() {
-        Path sourcesPath = Path.of("./testJavaSources");
-        FileUtils.deleteDirectory(sourcesPath.toFile());
-        Path sources = Files.createDirectory(sourcesPath);
-        Files.createFile(sources.resolve("pom.xml"));
-        this.sources = sources.toFile();
+        Path path = Path.of("./target/testJavaSources-" +
+                new Random().nextInt(Integer.MAX_VALUE));
+        path = Files.createDirectory(path);
+        Files.createFile(path.resolve("pom.xml"));
+        this.sources = path.toFile();
     }
 
     @BeforeMethod
@@ -56,10 +56,8 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         this.token = TokenTest.generateValidToken();
     }
 
-    @SneakyThrows
     @AfterMethod
     public void cleanup() {
-        FileUtils.deleteDirectory(sources);
         solutionManager.killAll(token);
         reset(dockerService);
     }

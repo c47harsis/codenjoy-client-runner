@@ -46,13 +46,17 @@ public class Solution {
         Assert.notNull(token, "Token can not be null");
         Assert.notNull(sources, "Sources can not be null");
         if (!sources.exists()) {
-            throw new IllegalArgumentException("Source folder with path : " + sources.getPath() + " doesn't exist");
+            throw new IllegalArgumentException("Source folder with path : " +
+                    sources.getPath() + " doesn't exist");
         }
         Platform platform = detectPlatform(sources);
         if (platform == null) {
-            throw new IllegalArgumentException("Solution platform not supported");
+            throw new IllegalArgumentException(
+                    String.format("Solution platform not supported " +
+                            "for sources: '%s'", sources));
         }
-        return new Solution(token.getPlayerId(), token.getCode(), token.getServerUrl(), sources, platform);
+        return new Solution(token.getPlayerId(), token.getCode(),
+                token.getServerUrl(), sources, platform);
     }
 
     private static Platform detectPlatform(File sources) {
