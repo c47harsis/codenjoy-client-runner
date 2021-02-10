@@ -2,15 +2,12 @@ package com.codenjoy.clientrunner;
 
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.model.Solution;
-import com.codenjoy.clientrunner.service.ClientServerServiceTest;
 
-import static junit.framework.TestCase.assertSame;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
+import static org.testng.Assert.*;
 
 public class AssertSolution {
 
-    private SolutionSummary solution;
+    private final SolutionSummary solution;
 
     public AssertSolution(SolutionSummary solution) {
         this.solution = solution;
@@ -25,25 +22,26 @@ public class AssertSolution {
         assertEquals(status.name(), solution.getStatus());
 
         switch (Solution.Status.valueOf(solution.getStatus())) {
-            case NEW :
-            case COMPILING :
-                assertNotSame(null, solution.getCreated());
-                assertSame(null, solution.getStarted());
-                assertSame(null, solution.getFinished());
+            case NEW:
+            case COMPILING:
+                assertNotNull(solution.getCreated());
+                assertNull(solution.getStarted());
+                assertNull(solution.getFinished());
                 break;
-            case RUNNING :
-                assertNotSame(null, solution.getCreated());
-                assertNotSame(null, solution.getStarted());
-                assertSame(null, solution.getFinished());
+            case RUNNING:
+                assertNotNull(solution.getCreated());
+                assertNotNull(solution.getStarted());
+                assertNull(solution.getFinished());
                 break;
-            case FINISHED :
-            case ERROR :
-            case KILLED :
-                assertNotSame(null, solution.getCreated());
-                assertNotSame(null, solution.getStarted());
-                assertNotSame(null, solution.getFinished());
+            case FINISHED:
+            case ERROR:
+            case KILLED:
+                assertNotNull(solution.getCreated());
+                assertNotNull(solution.getStarted());
+                assertNotNull(solution.getFinished());
                 break;
-
+            default:
+                fail("Solution has invalid status: " + solution.getStatus());
         }
         return this;
     }
