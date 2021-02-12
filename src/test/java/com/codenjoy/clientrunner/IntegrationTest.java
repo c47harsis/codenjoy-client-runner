@@ -2,6 +2,7 @@ package com.codenjoy.clientrunner;
 
 import com.codenjoy.clientrunner.dto.CheckRequest;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
+import com.codenjoy.clientrunner.model.LogType;
 import com.codenjoy.clientrunner.service.ClientRunnerService;
 import com.codenjoy.clientrunner.service.SolutionManager;
 import com.codenjoy.clientrunner.service.facade.DockerService;
@@ -103,7 +104,7 @@ public class IntegrationTest extends AbstractTestNGSpringContextTests {
     @SneakyThrows
     private void readRuntimeLogs(String serverUrl, int solutionId) {
         do {
-            logs = service.getRuntimeLogs(serverUrl, solutionId, 0);
+            logs = service.getLogs(serverUrl, solutionId, LogType.RUNTIME, 0);
             Thread.sleep(1000);
         } while (logs.isEmpty());
     }
@@ -111,7 +112,7 @@ public class IntegrationTest extends AbstractTestNGSpringContextTests {
     @SneakyThrows
     private void readBuildLogs(String serverUrl, int solutionId) {
         do {
-            logs = service.getBuildLogs(serverUrl, solutionId, 0);
+            logs = service.getLogs(serverUrl, solutionId, LogType.BUILD, 0);
             Thread.sleep(1000);
         } while (logs.isEmpty());
     }

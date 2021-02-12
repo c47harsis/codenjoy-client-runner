@@ -8,8 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.codenjoy.clientrunner.model.Solution.Status.KILLED;
-import static com.codenjoy.clientrunner.model.Solution.Status.NEW;
+import static com.codenjoy.clientrunner.model.Solution.Status.*;
 
 @Getter
 @Setter
@@ -24,7 +23,7 @@ public class Solution {
     private final String serverUrl;
     private final File sources;
     private final Platform platform;
-    private Integer id;
+    private int id;
     private LocalDateTime created;
     private LocalDateTime started;
     private LocalDateTime finished;
@@ -46,13 +45,17 @@ public class Solution {
         Assert.notNull(token, "Token can not be null");
         Assert.notNull(sources, "Sources can not be null");
         if (!sources.exists()) {
-            throw new IllegalArgumentException("Source folder with path : " + sources.getPath() + " doesn't exist");
+            throw new IllegalArgumentException("Source folder with path '" +
+                    sources.getPath() + "' doesn't exist");
         }
         Platform platform = detectPlatform(sources);
         if (platform == null) {
-            throw new IllegalArgumentException("Solution platform not supported");
+            throw new IllegalArgumentException(
+                    String.format("Solution platform not supported " +
+                            "for sources: '%s'", sources));
         }
-        return new Solution(token.getPlayerId(), token.getCode(), token.getServerUrl(), sources, platform);
+        return new Solution(token.getPlayerId(), token.getCode(),
+                token.getServerUrl(), sources, platform);
     }
 
     private static Platform detectPlatform(File sources) {
@@ -79,6 +82,16 @@ public class Solution {
     public boolean allows(Token token) {
         return Objects.equals(playerId, token.getPlayerId())
                 && Objects.equals(code, token.getCode());
+    }
+
+    public void finish() {
+        finished = LocalDateTime.now();
+
+        if (status.getStage() <= RUNNING.getStage()) {
+            status = ERROR;
+        } else if (status == KILLED) {
+            status = FINISHED;
+        }
     }
 
     @Getter

@@ -1,6 +1,7 @@
 package com.codenjoy.clientrunner.controller;
 
 import com.codenjoy.clientrunner.dto.CheckRequest;
+import com.codenjoy.clientrunner.model.LogType;
 import com.codenjoy.clientrunner.service.ClientRunnerService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -41,13 +42,13 @@ public class ClientRunnerController {
     @GetMapping("/runtime_logs")
     ResponseEntity<?> getRuntimeLogs(@RequestParam int solutionId, @RequestParam String serverUrl,
                                      @RequestParam(defaultValue = "0") int offset) {
-        return ok(service.getRuntimeLogs(serverUrl, solutionId, offset));
+        return ok(service.getLogs(serverUrl, solutionId, LogType.RUNTIME, offset));
     }
 
     @GetMapping("/build_logs")
     ResponseEntity<?> getBuildLogs(@RequestParam int solutionId, @RequestParam String serverUrl,
                                    @RequestParam(defaultValue = "0") int offset) {
-        return ok(service.getBuildLogs(serverUrl, solutionId, offset));
+        return ok(service.getLogs(serverUrl, solutionId, LogType.BUILD, offset));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

@@ -3,12 +3,12 @@ package com.codenjoy.clientrunner.service;
 import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.exception.SolutionNotFoundException;
+import com.codenjoy.clientrunner.model.LogType;
 import com.codenjoy.clientrunner.model.Solution;
 import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.DockerService;
 import com.codenjoy.clientrunner.service.facade.LogWriter;
 import com.github.dockerjava.api.model.HostConfig;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 public class SolutionManager {
 
+    public static final String DOCKERFILE = "Dockerfile";
     private final AtomicInteger idGenerator = new AtomicInteger(0);
     private final DockerConfig config;
     private HostConfig hostConfig;
@@ -49,21 +50,22 @@ public class SolutionManager {
                 .withMemory(config.getContainer().getMemoryLimitBytes());
     }
 
-    // TODO: Refactor this
-    public void runSolution(Token token, File sources) {
+    public int runSolution(Token token, File sources) {
         getSolutions(token).forEach(this::kill);
 
         Solution solution = Solution.from(token, sources);
         solution.setId(idGenerator.incrementAndGet());
         solutions.add(solution);
 
-        /* TODO: try to avoid copy Dockerfile. https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
+        /* TODO: try to avoid copy Dockerfile.
+            https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
         addDockerfile(solution);
 
+        // TODO this is multithreading crunch, to use synchronized section
         if (!solution.getStatus().isActive()) {
             log.debug("Attempt to run inactive solution with id: {} and status: {}",
                     solution.getId(), solution.getStatus());
-            return;
+            return solution.getId();
         }
 
         try {
@@ -76,6 +78,8 @@ public class SolutionManager {
                 solution.setStatus(ERROR);
             }
         }
+
+        return solution.getId();
     }
 
     public void killAll(Token token) {
@@ -101,26 +105,15 @@ public class SolutionManager {
                 .collect(toList());
     }
 
-    public List<String> getBuildLogs(Token token, int solutionId, int offset) {
+    public List<String> getLogs(Token token, int solutionId, LogType logType, int offset) {
         Solution solution = getSolution(token, solutionId)
                 .orElseThrow(() -> new SolutionNotFoundException(solutionId));
 
-        if (solution.getStatus().getStage() < COMPILING.getStage()) {
+        if (!logType.existsWhen(solution.getStatus())) {
             return Collections.emptyList();
         }
 
-        return getLogs(solution, LogType.BUILD, offset);
-    }
-
-    public List<String> getRuntimeLogs(Token token, int solutionId, int offset) {
-        Solution solution = getSolution(token, solutionId)
-                .orElseThrow(() -> new SolutionNotFoundException(solutionId));
-
-        if (solution.getStatus().getStage() < RUNNING.getStage()) {
-            return Collections.emptyList();
-        }
-
-        return getLogs(solution, LogType.RUNTIME, offset);
+        return readLogs(solution, logType, offset);
     }
 
     private List<Solution> getSolutions(Token token) {
@@ -149,19 +142,17 @@ public class SolutionManager {
 
         docker.startContainer(solution.getContainerId());
 
-        docker.logContainer(solution.getContainerId(), new LogWriter(solution, false));
+        docker.logContainer(solution.getContainerId(),
+                new LogWriter(solution, false));
 
-        docker.waitContainer(solution.getContainerId(), () -> {
-            solution.setFinished(LocalDateTime.now());
-            if (solution.getStatus() == KILLED) {
-                solution.setStatus(FINISHED);
-            }
-            if (solution.getStatus() == RUNNING) {
-                solution.setStatus(ERROR);
-            }
-            docker.removeContainer(solution.getContainerId());
-            // TODO: remove images
-        });
+        docker.waitContainer(solution.getContainerId(),
+                () -> cleanupSolution(solution));
+    }
+
+    private void cleanupSolution(Solution solution) {
+        solution.finish();
+        docker.removeContainer(solution.getContainerId());
+        // TODO: remove images
     }
 
     private void kill(Solution solution) {
@@ -177,8 +168,8 @@ public class SolutionManager {
     private void addDockerfile(Solution solution) {
         String platformFolder = solution.getPlatform().getFolderName();
         try {
-            File destination = new File(solution.getSources(), "Dockerfile");
-            String path = config.getDockerfilesFolder() + "/" + platformFolder + "/Dockerfile";
+            File destination = new File(solution.getSources(), DOCKERFILE);
+            String path = config.getDockerfilesFolder() + "/" + platformFolder + "/" + DOCKERFILE;
             URL url = getClass().getResource(path);
             FileUtils.copyURLToFile(url, destination);
         } catch (IOException e) {
@@ -187,8 +178,8 @@ public class SolutionManager {
         }
     }
 
-    private List<String> getLogs(Solution solution, LogType type, int offset) {
-        String logFilePath = solution.getSources() + "/" + type.filename;
+    private List<String> readLogs(Solution solution, LogType type, int offset) {
+        String logFilePath = solution.getSources() + "/" + type.getFilename();
         try (Stream<String> log = Files.lines(Paths.get(logFilePath))) {
             return log.skip(offset).collect(Collectors.toList());
         } catch (IOException e) {
@@ -198,12 +189,8 @@ public class SolutionManager {
         }
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    private enum LogType {
-        BUILD("build.log"),
-        RUNTIME("app.log");
-
-        private final String filename;
+    // for testing only
+    void clear() {
+        solutions.clear();
     }
 }

@@ -1,10 +1,12 @@
 package com.codenjoy.clientrunner.model;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
 
 @RequiredArgsConstructor
+@Getter
 public enum Platform {
 
     JAVA("pom.xml"),
@@ -16,7 +18,7 @@ public enum Platform {
 
     public static Platform of(String filename) {
         return Arrays.stream(Platform.values())
-                .filter(platform -> platform.filename.equals(filename))
+                .filter(platform -> platform.getFilename().equals(filename))
                 .findAny()
                 .orElse(null);
     }

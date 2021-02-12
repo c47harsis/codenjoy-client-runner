@@ -3,6 +3,7 @@ package com.codenjoy.clientrunner.service;
 import com.codenjoy.clientrunner.config.ClientServerServiceConfig;
 import com.codenjoy.clientrunner.dto.CheckRequest;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
+import com.codenjoy.clientrunner.model.LogType;
 import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.GitService;
 import lombok.AllArgsConstructor;
@@ -29,7 +30,8 @@ public class ClientRunnerService {
 
         // TODO: async
         git.clone(request.getRepo(), directory)
-                .orElseThrow(() -> new IllegalArgumentException("Can not clone repository: " + request.getRepo()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Can not clone repository: " + request.getRepo()));
 
         solutionManager.runSolution(token, directory);
     }
@@ -49,14 +51,9 @@ public class ClientRunnerService {
         return solutionManager.getSolutionSummary(token, solutionId);
     }
 
-    public List<String> getBuildLogs(String serverUrl, int solutionId, int offset) {
+    public List<String> getLogs(String serverUrl, int solutionId, LogType logType, int offset) {
         Token token = parse(serverUrl);
-        return solutionManager.getBuildLogs(token, solutionId, offset);
-    }
-
-    public List<String> getRuntimeLogs(String serverUrl, int solutionId, int offset) {
-        Token token = parse(serverUrl);
-        return solutionManager.getRuntimeLogs(token, solutionId, offset);
+        return solutionManager.getLogs(token, solutionId, logType, offset);
     }
 
     private Token parse(String serverUrl) {
