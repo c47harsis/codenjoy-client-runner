@@ -19,6 +19,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -51,7 +52,7 @@ public class ClientServerServiceTest extends AbstractTestNGSpringContextTests {
         reset(docker, git, solutionManager);
 
         Git gitMock = mock(Git.class);
-        doReturn(gitMock)
+        doReturn(Optional.of(gitMock))
                 .when(git)
                 .clone(matches("\\.*.git"), isA(File.class));
     }
@@ -69,5 +70,10 @@ public class ClientServerServiceTest extends AbstractTestNGSpringContextTests {
         // then
         verify(git, times(1)).clone(matches("\\.*.git"), isA(File.class));
         verify(solutionManager, times(1)).runSolution(isA(Token.class), isA(File.class));
+    }
+
+    @Test
+    public void shouldThrowAndException_whenRunSolution_withInvalid() {
+
     }
 }
