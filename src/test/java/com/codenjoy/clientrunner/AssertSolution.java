@@ -14,12 +14,12 @@ public class AssertSolution {
     }
 
     public AssertSolution hasId(int id) {
-        assertEquals(id, solution.getId());
+        assertEquals(solution.getId(), id);
         return this;
     }
 
     public AssertSolution inStatus(Solution.Status status) {
-        assertEquals(status.name(), solution.getStatus());
+        assertEquals(solution.getStatus(), status.name());
 
         switch (Solution.Status.valueOf(solution.getStatus())) {
             case NEW:
