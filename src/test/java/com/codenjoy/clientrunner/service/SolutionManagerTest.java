@@ -27,12 +27,12 @@ import java.util.Random;
 import java.util.function.Consumer;
 
 import static com.codenjoy.clientrunner.ExceptionAssert.expectThrows;
-import static com.codenjoy.clientrunner.model.Solution.Status.ERROR;
-import static com.codenjoy.clientrunner.model.Solution.Status.KILLED;
+import static com.codenjoy.clientrunner.model.Solution.Status.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 
 @SpringBootTest
 @TestExecutionListeners(MockitoTestExecutionListener.class)
@@ -92,7 +92,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         when(dockerService.createContainer(anyString(), any())).thenReturn(containerId);
 
         // when
-        solutionManager.runSolution(token, sources);
+        int id = solutionManager.runSolution(token, sources);
 
         // then
         InOrder inOrder = inOrder(dockerService);
@@ -101,6 +101,13 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         inOrder.verify(dockerService).logContainer(same(containerId), any());
         inOrder.verify(dockerService).waitContainer(same(containerId), any());
         inOrder.verifyNoMoreInteractions();
+
+        SolutionSummary solution = solutionManager.getSolutionSummary(token, id);
+        assertEquals(solution.getId(), id);
+        assertEquals(solution.getStatus(), RUNNING.name());
+        assertNotEquals(solution.getCreated(), null);
+        assertNotEquals(solution.getStarted(), null);
+        assertEquals(solution.getFinished(), null);
     }
 
     @Test
@@ -114,7 +121,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         when(dockerService.createContainer(anyString(), any())).thenReturn(containerId);
 
         // when
-        solutionManager.runSolution(token, sources);
+        int id = solutionManager.runSolution(token, sources);
 
         // then
         InOrder inOrder = inOrder(dockerService);
@@ -124,6 +131,13 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         inOrder.verify(dockerService).waitContainer(same(containerId), any());
         inOrder.verify(dockerService).removeContainer(same(containerId));
         inOrder.verifyNoMoreInteractions();
+
+        SolutionSummary solution = solutionManager.getSolutionSummary(token, id);
+        assertEquals(solution.getId(), id);
+        assertEquals(solution.getStatus(), ERROR.name());
+        assertNotEquals(solution.getCreated(), null);
+        assertNotEquals(solution.getStarted(), null);
+        assertNotEquals(solution.getFinished(), null);
     }
 
     private void willFinishedWhenWaitContainer() {
