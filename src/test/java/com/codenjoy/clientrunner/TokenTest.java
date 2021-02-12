@@ -3,7 +3,8 @@ package com.codenjoy.clientrunner;
 import com.codenjoy.clientrunner.model.Token;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
+import static com.codenjoy.clientrunner.ExceptionAssert.expectThrows;
+import static org.testng.Assert.assertEquals;
 
 public class TokenTest {
     private static final String SERVER_URL_PATTERN
@@ -13,7 +14,8 @@ public class TokenTest {
     private static final String CODE = "000000000000";
 
     private static final String VALID_SERVER_URL
-            = "http://5.189.144.144/codenjoy-contest/board/player/" + PLAYER_ID + "?code=" + CODE;
+            = "http://5.189.144.144/codenjoy-contest/board/player/" +
+            PLAYER_ID + "?code=" + CODE;
 
 
     public static Token generateValidToken() {
@@ -33,35 +35,22 @@ public class TokenTest {
 
     @Test
     public void shouldThrowException_whenInvalidServerUrlPassed() {
-        try {
-            Token.from("Invalid server URL", SERVER_URL_PATTERN);
-            fail("Exception expected");
-        } catch (IllegalArgumentException exception) {
-            assertEquals(exception.getMessage(),
-                    "Given invalid server URL: 'Invalid server URL' is not match " +
-                            "'^https?://[0-9A-Za-z_.\\-:]+/codenjoy-contest/board/player/([\\w]+)\\?code=([\\w]+)'");
-        }
+        expectThrows(IllegalArgumentException.class,
+                "Given invalid server URL: 'Invalid server URL' is not match",
+            () -> Token.from("Invalid server URL", SERVER_URL_PATTERN));
     }
 
     @Test
     public void shouldThrowException_whenNullPassed_asServerUrl() {
-        try {
-            Token.from(null, "not null");
-            fail("Exception expected");
-        } catch (IllegalArgumentException exception) {
-            assertEquals(exception.getMessage(),
-                    "Server URL must not be null");
-        }
+        expectThrows(IllegalArgumentException.class,
+                "Server URL must not be null",
+                () -> Token.from(null, "not null"));
     }
 
     @Test
     public void shouldThrowException_whenNullPassed_asUrlPattern() {
-        try {
-            Token.from("not null", null);
-            fail("Exception expected");
-        } catch (IllegalArgumentException exception) {
-            assertEquals(exception.getMessage(),
-                    "URL pattern must not be null");
-        }
+        expectThrows(IllegalArgumentException.class,
+                "URL pattern must not be null",
+                () -> Token.from("not null", null));
     }
 }

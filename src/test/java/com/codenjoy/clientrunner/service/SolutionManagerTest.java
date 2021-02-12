@@ -24,12 +24,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Random;
 
+import static com.codenjoy.clientrunner.ExceptionAssert.expectThrows;
 import static com.codenjoy.clientrunner.model.Solution.Status.ERROR;
 import static com.codenjoy.clientrunner.model.Solution.Status.KILLED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.*;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 @SpringBootTest
 @TestExecutionListeners(MockitoTestExecutionListener.class)
@@ -157,14 +158,13 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
     public void shouldThrowAnException_whenKill_withNonExistingSolution() {
         // given
         int id = solutionManager.runSolution(token, sources);
-        int nonExistsId = Integer.MAX_VALUE;
 
         // then
-        assertThrows(
-                SolutionNotFoundException.class,
+        expectThrows(SolutionNotFoundException.class,
+                "Solution with id:-1 not found!",
                 // when
-                () -> solutionManager.kill(token, nonExistsId)
-        );
+                () -> solutionManager.kill(token, -1));
+
         assertEquals(statusOf(id).isActive(), true);
     }
 
