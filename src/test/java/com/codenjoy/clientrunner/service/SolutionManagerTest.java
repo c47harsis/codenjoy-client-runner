@@ -2,6 +2,7 @@ package com.codenjoy.clientrunner.service;
 
 import com.codenjoy.clientrunner.TokenTest;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
+import com.codenjoy.clientrunner.exception.SolutionNotFoundException;
 import com.codenjoy.clientrunner.model.Solution;
 import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.DockerService;
@@ -114,6 +115,34 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         assertTrue(statusOfSolutionById(++lastId).isActive());
     }
 
+    @Test
+    public void shouldKillTheSolution_whenKill_withExistingSolution() {
+        // given
+        solutionManager.runSolution(token, sources);
+        int id = getLastSolutionId();
+
+        // when
+        solutionManager.kill(token, id);
+
+        // then
+        assertFalse(isSolutionActive(solutionManager.getSolutionSummary(token, id)));
+    }
+
+    @Test
+    public void shouldThrowAnException_whenKill_withNonExistingSolution() {
+        // given
+        solutionManager.runSolution(token, sources);
+        int id = getLastSolutionId();
+
+        // then
+        assertThrows(
+                SolutionNotFoundException.class,
+                // when
+                () -> solutionManager.kill(token, id + 1)
+        );
+        assertTrue(isSolutionActive(solutionManager.getSolutionSummary(token, id)));
+    }
+
     private Solution.Status statusOfSolutionById(int solutionId) {
         SolutionSummary solution = solutionManager.getSolutionSummary(token, solutionId);
         return Solution.Status.valueOf(solution.getStatus());
@@ -122,5 +151,9 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
     private int getLastSolutionId() {
         List<SolutionSummary> solutions = solutionManager.getAllSolutionSummary(token);
         return solutions.isEmpty() ? 0 : solutions.get(solutions.size() - 1).getId();
+    }
+
+    private boolean isSolutionActive(SolutionSummary solution) {
+        return Solution.Status.valueOf(solution.getStatus()).isActive();
     }
 }

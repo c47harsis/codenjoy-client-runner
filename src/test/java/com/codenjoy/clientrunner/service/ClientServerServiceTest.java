@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
+import static org.testng.Assert.assertThrows;
 
 @SpringBootTest(classes = ClientRunnerApplication.class,
         properties = "spring.main.allow-bean-definition-overriding=true")
@@ -50,16 +51,16 @@ public class ClientServerServiceTest extends AbstractTestNGSpringContextTests {
     @BeforeMethod
     public void setup() {
         reset(docker, git, solutionManager);
+    }
 
+    @Test
+    public void shouldPullFromGitAndRunInSolutionManager_whenRunSolution_withValidCheckRequest() {
+        // given
         Git gitMock = mock(Git.class);
         doReturn(Optional.of(gitMock))
                 .when(git)
                 .clone(matches("\\.*.git"), isA(File.class));
-    }
 
-    @Test
-    public void shouldPullFromGitAndRunInSolutionManager_WhenValidCheckRequestReceived() {
-        // given
         CheckRequest request = new CheckRequest();
         request.setServerUrl(VALID_SERVER_URL);
         request.setRepo(VALID_REPO_URL);
@@ -73,7 +74,24 @@ public class ClientServerServiceTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void shouldThrowAndException_whenRunSolution_withInvalid() {
+    public void shouldThrowAnException_whenRunSolution_withRepoIsNotCloned() {
+        // given
+        doReturn(Optional.empty())
+                .when(git)
+                .clone(any(), any());
 
+        CheckRequest request = new CheckRequest();
+        request.setServerUrl(VALID_SERVER_URL);
+        request.setRepo(VALID_REPO_URL);
+
+        // when
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.checkSolution(request)
+        );
+
+        // then
+        verify(git, only()).clone(any(), any());
+        verify(solutionManager, never()).runSolution(any(), any());
     }
 }
