@@ -19,20 +19,22 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
+import static org.testng.Assert.assertThrows;
 
 @SpringBootTest(classes = ClientRunnerApplication.class,
         properties = "spring.main.allow-bean-definition-overriding=true")
 @TestExecutionListeners(MockitoTestExecutionListener.class)
-public class ClientServerServiceTest extends AbstractTestNGSpringContextTests {
+public class ClientRunnerServiceTest extends AbstractTestNGSpringContextTests {
 
     public static final String VALID_SERVER_URL = "http://5.189.144.144/codenjoy-contest/board/player/0?code=000000000000";
     public static final String VALID_REPO_URL = "https://github.com/codenjoyme/codenjoy-javascript-client.git";
 
     @InjectMocks
     @Autowired
-    private ClientServerService service;
+    private ClientRunnerService service;
 
     @SpyBean
     private ClientServerServiceConfig config;
@@ -49,16 +51,16 @@ public class ClientServerServiceTest extends AbstractTestNGSpringContextTests {
     @BeforeMethod
     public void setup() {
         reset(docker, git, solutionManager);
-
-        Git gitMock = mock(Git.class);
-        doReturn(gitMock)
-                .when(git)
-                .clone(matches("\\.*.git"), isA(File.class));
     }
 
     @Test
-    public void shouldPullFromGitAndRunInSolutionManager_WhenValidCheckRequestReceived() {
+    public void shouldPullFromGitAndRunInSolutionManager_whenRunSolution_withValidCheckRequest() {
         // given
+        Git gitMock = mock(Git.class);
+        doReturn(Optional.of(gitMock))
+                .when(git)
+                .clone(matches("\\.*.git"), isA(File.class));
+
         CheckRequest request = new CheckRequest();
         request.setServerUrl(VALID_SERVER_URL);
         request.setRepo(VALID_REPO_URL);
@@ -69,5 +71,27 @@ public class ClientServerServiceTest extends AbstractTestNGSpringContextTests {
         // then
         verify(git, times(1)).clone(matches("\\.*.git"), isA(File.class));
         verify(solutionManager, times(1)).runSolution(isA(Token.class), isA(File.class));
+    }
+
+    @Test
+    public void shouldThrowAnException_whenRunSolution_withRepoIsNotCloned() {
+        // given
+        doReturn(Optional.empty())
+                .when(git)
+                .clone(any(), any());
+
+        CheckRequest request = new CheckRequest();
+        request.setServerUrl(VALID_SERVER_URL);
+        request.setRepo(VALID_REPO_URL);
+
+        // when
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.checkSolution(request)
+        );
+
+        // then
+        verify(git, only()).clone(any(), any());
+        verify(solutionManager, never()).runSolution(any(), any());
     }
 }

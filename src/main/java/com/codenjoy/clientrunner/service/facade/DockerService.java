@@ -3,6 +3,7 @@ package com.codenjoy.clientrunner.service.facade;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.Frame;
@@ -12,18 +13,19 @@ import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DockerService {
 
     public static final String SERVER_PARAMETER = "CODENJOY_URL";
@@ -59,10 +61,12 @@ public class DockerService {
 
     public boolean isContainerRunning(String containerId) {
         try {
-            return docker.inspectContainerCmd(containerId)
-                    .exec()
-                    .getState()
-                    .getRunning();
+            InspectContainerResponse response = docker.inspectContainerCmd(containerId)
+                    .exec();
+            return Optional.ofNullable(response)
+                    .map(InspectContainerResponse::getState)
+                    .map(InspectContainerResponse.ContainerState::getRunning)
+                    .orElse(false);
         } catch (NotFoundException e) {
             return false;
         }

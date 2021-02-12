@@ -7,7 +7,6 @@ import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.GitService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jgit.api.Git;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -18,7 +17,7 @@ import java.util.List;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class ClientServerService {
+public class ClientRunnerService {
 
     private final ClientServerServiceConfig config;
     private final GitService git;
@@ -28,11 +27,10 @@ public class ClientServerService {
         Token token = parse(request.getServerUrl());
         File directory = getSolutionDirectory(token);
 
-        Git repo = git.clone(request.getRepo(), directory); // TODO: async
-        if (repo == null) {
-            throw new IllegalArgumentException("Can not clone repository: " +
-                    request.getRepo());
-        }
+        // TODO: async
+        git.clone(request.getRepo(), directory)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Can not clone repository: " + request.getRepo()));
 
         solutionManager.runSolution(token, directory);
     }

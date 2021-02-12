@@ -1,27 +1,28 @@
 package com.codenjoy.clientrunner.service.facade;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.Optional;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GitService {
 
-    public Git clone(String repoURI, File directory) {
+    public Optional<Git> clone(String repoURI, File directory) {
         try {
-            return Git.cloneRepository()
+            return Optional.ofNullable(Git.cloneRepository()
                     .setURI(repoURI)
                     .setDirectory(directory)
-                    .call();
+                    .call());
         } catch (GitAPIException e) {
             log.error("Can not clone repository: {}", repoURI);
-            return null;
+            return Optional.empty();
         }
     }
 }
