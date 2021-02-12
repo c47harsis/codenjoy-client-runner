@@ -27,4 +27,10 @@ public class LogTypeTest {
         assertEquals(RUNTIME.existsWhen(KILLED), exists);
     }
 
+    @Test
+    public void shouldGetLogFilename() {
+        assertEquals(BUILD.getFilename(), "build.log");
+        assertEquals(RUNTIME.getFilename(), "app.log");
+    }
+
 }
