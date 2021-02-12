@@ -9,7 +9,6 @@ import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.DockerService;
 import lombok.SneakyThrows;
 import org.mockito.InOrder;
-import org.mockito.internal.InOrderImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -86,24 +85,59 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
     @Test
     public void shouldRunContainer_afterBuildImage() {
         // given
-        doAnswer(invocation -> {
-            invocation.getArgument(3, Consumer.class).accept("imageId");
-            return null;
-        }).when(dockerService).buildImage(any(), any(), any(), any());
+        String imageId = "imageId";
+        String containerId = "containerId";
 
-        when(dockerService.createContainer(anyString(), any())).thenReturn("containerId");
+        willRunContainerWhenImageBuid(imageId);
+        when(dockerService.createContainer(anyString(), any())).thenReturn(containerId);
 
         // when
         solutionManager.runSolution(token, sources);
 
         // then
         InOrder inOrder = inOrder(dockerService);
-
-        inOrder.verify(dockerService).createContainer(same("imageId"), any());
-        inOrder.verify(dockerService).startContainer(same("containerId"));
-        inOrder.verify(dockerService).logContainer(same("containerId"), any());
-        inOrder.verify(dockerService).waitContainer(same("containerId"), any());
+        inOrder.verify(dockerService).createContainer(same(imageId), any());
+        inOrder.verify(dockerService).startContainer(same(containerId));
+        inOrder.verify(dockerService).logContainer(same(containerId), any());
+        inOrder.verify(dockerService).waitContainer(same(containerId), any());
         inOrder.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void shouldWaitStopContainer_afterRunContainer() {
+        // given
+        String imageId = "imageId";
+        String containerId = "containerId";
+
+        willRunContainerWhenImageBuid(imageId);
+        willFinishedWhenWaitContainer();
+        when(dockerService.createContainer(anyString(), any())).thenReturn(containerId);
+
+        // when
+        solutionManager.runSolution(token, sources);
+
+        // then
+        InOrder inOrder = inOrder(dockerService);
+        inOrder.verify(dockerService).createContainer(same(imageId), any());
+        inOrder.verify(dockerService).startContainer(same(containerId));
+        inOrder.verify(dockerService).logContainer(same(containerId), any());
+        inOrder.verify(dockerService).waitContainer(same(containerId), any());
+        inOrder.verify(dockerService).removeContainer(same(containerId));
+        inOrder.verifyNoMoreInteractions();
+    }
+
+    private void willFinishedWhenWaitContainer() {
+        doAnswer(invocation -> {
+            invocation.getArgument(1, Runnable.class).run();
+            return null;
+        }).when(dockerService).waitContainer(any(), any());
+    }
+
+    private void willRunContainerWhenImageBuid(String imageId) {
+        doAnswer(invocation -> {
+            invocation.getArgument(3, Consumer.class).accept(imageId);
+            return null;
+        }).when(dockerService).buildImage(any(), any(), any(), any());
     }
 
     @Test
