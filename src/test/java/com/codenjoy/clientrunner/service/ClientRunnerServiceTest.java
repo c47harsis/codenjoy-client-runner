@@ -56,8 +56,7 @@ public class ClientRunnerServiceTest extends AbstractTestNGSpringContextTests {
     @Test
     public void shouldPullFromGitAndRunInSolutionManager_whenRunSolution_withValidCheckRequest() {
         // given
-        Git gitMock = mock(Git.class);
-        doReturn(Optional.of(gitMock))
+        doReturn(Optional.of(mock(Git.class)))
                 .when(git)
                 .clone(matches("\\.*.git"), isA(File.class));
 
