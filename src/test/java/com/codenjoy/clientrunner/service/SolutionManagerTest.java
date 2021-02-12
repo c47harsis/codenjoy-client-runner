@@ -8,6 +8,8 @@ import com.codenjoy.clientrunner.model.Solution;
 import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.DockerService;
 import lombok.SneakyThrows;
+import org.mockito.InOrder;
+import org.mockito.internal.InOrderImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -23,6 +25,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Random;
+import java.util.function.Consumer;
 
 import static com.codenjoy.clientrunner.ExceptionAssert.expectThrows;
 import static com.codenjoy.clientrunner.model.Solution.Status.ERROR;
@@ -60,7 +63,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
 
     @BeforeMethod
     public void setup() {
-        reset(config);
+        reset(config, dockerService);
         solutionManager.clear();
         token = TokenTest.generateValidToken();
     }
@@ -78,6 +81,29 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
 
         // then
         assertEquals(Files.exists(Path.of(sources.getPath(), "Dockerfile")), true);
+    }
+
+    @Test
+    public void shouldRunContainer_afterBuildImage() {
+        // given
+        doAnswer(invocation -> {
+            invocation.getArgument(3, Consumer.class).accept("imageId");
+            return null;
+        }).when(dockerService).buildImage(any(), any(), any(), any());
+
+        when(dockerService.createContainer(anyString(), any())).thenReturn("containerId");
+
+        // when
+        solutionManager.runSolution(token, sources);
+
+        // then
+        InOrder inOrder = inOrder(dockerService);
+
+        inOrder.verify(dockerService).createContainer(same("imageId"), any());
+        inOrder.verify(dockerService).startContainer(same("containerId"));
+        inOrder.verify(dockerService).logContainer(same("containerId"), any());
+        inOrder.verify(dockerService).waitContainer(same("containerId"), any());
+        inOrder.verifyNoMoreInteractions();
     }
 
     @Test
