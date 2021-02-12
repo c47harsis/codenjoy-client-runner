@@ -22,7 +22,6 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Random;
 
 import static com.codenjoy.clientrunner.model.Solution.Status.ERROR;
@@ -59,8 +58,10 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
     }
 
     @BeforeMethod
-    public void generateValidToken() {
-        this.token = TokenTest.generateValidToken();
+    public void setup() {
+        reset(config);
+        solutionManager.clear();
+        token = TokenTest.generateValidToken();
     }
 
     @AfterMethod
@@ -94,38 +95,35 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         doThrow(RuntimeException.class)
                 .when(dockerService)
                 .buildImage(isA(File.class), anyString(), any(), any());
-        int lastId = getLastSolutionId();
 
         // when
-        solutionManager.runSolution(token, sources);
+        int id = solutionManager.runSolution(token, sources);
 
         // then
-        assertEquals(solutionManager.getSolutionSummary(token, lastId + 1).getStatus(), ERROR.name());
+        assertEquals(statusOf(id), ERROR);
     }
 
     @Test
     public void shouldKillLastSolutionBeforeRunNew_whenRunSolution_withValidTokenAndSources() {
         // given
-        int lastId = getLastSolutionId();
-        solutionManager.runSolution(token, sources);
-        solutionManager.runSolution(token, sources);
+        int id1 = solutionManager.runSolution(token, sources);
+        int id2 = solutionManager.runSolution(token, sources);
 
         // when
-        solutionManager.runSolution(token, sources);
+        int id3 = solutionManager.runSolution(token, sources);
 
         // then
-        assertFalse(statusOfSolutionById(++lastId).isActive());
-        assertFalse(statusOfSolutionById(++lastId).isActive());
-        assertTrue(statusOfSolutionById(++lastId).isActive());
+        assertFalse(statusOf(id1).isActive());
+        assertFalse(statusOf(id2).isActive());
+        assertTrue(statusOf(id3).isActive());
     }
 
     @Test
-   public void shouldDontRunning_whenRunSolution_withKillItImmediately() {
+   public void shouldDontRunSolution_whenKillItImmediately_afterRunIt() {
         // given
         // simulate multithreading TODO to use synchronized section inside solutionManager
         when(config.getDockerfilesFolder()).thenAnswer(invocation -> {
-            SolutionSummary summary = solutionManager.getAllSolutionSummary(token).get(0);
-            solutionManager.kill(token, summary.getId());
+            kill(token);
             return invocation.callRealMethod();
         });
 
@@ -134,49 +132,44 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
 
         // then
         SolutionSummary summary = solutionManager.getAllSolutionSummary(token).get(0);
-        assertEquals(KILLED.toString(), summary.getStatus());
+        assertEquals(summary.getStatus(), KILLED.name());
         verify(dockerService, never()).buildImage(any(), any(), any(), any());
+    }
+
+    private void kill(Token token) {
+        SolutionSummary summary = solutionManager.getAllSolutionSummary(token).get(0);
+        solutionManager.kill(token, summary.getId());
     }
 
     @Test
     public void shouldKillTheSolution_whenKill_withExistingSolution() {
         // given
-        solutionManager.runSolution(token, sources);
-        int id = getLastSolutionId();
+        int id = solutionManager.runSolution(token, sources);
 
         // when
         solutionManager.kill(token, id);
 
         // then
-        assertFalse(isSolutionActive(solutionManager.getSolutionSummary(token, id)));
+        assertFalse(statusOf(id).isActive());
     }
 
     @Test
     public void shouldThrowAnException_whenKill_withNonExistingSolution() {
         // given
-        solutionManager.runSolution(token, sources);
-        int id = getLastSolutionId();
+        int id = solutionManager.runSolution(token, sources);
+        int nonExistsId = Integer.MAX_VALUE;
 
         // then
         assertThrows(
                 SolutionNotFoundException.class,
                 // when
-                () -> solutionManager.kill(token, id + 1)
+                () -> solutionManager.kill(token, nonExistsId)
         );
-        assertTrue(isSolutionActive(solutionManager.getSolutionSummary(token, id)));
+        assertTrue(statusOf(id).isActive());
     }
 
-    private Solution.Status statusOfSolutionById(int solutionId) {
+    private Solution.Status statusOf(int solutionId) {
         SolutionSummary solution = solutionManager.getSolutionSummary(token, solutionId);
         return Solution.Status.valueOf(solution.getStatus());
-    }
-
-    private int getLastSolutionId() {
-        List<SolutionSummary> solutions = solutionManager.getAllSolutionSummary(token);
-        return solutions.isEmpty() ? 0 : solutions.get(solutions.size() - 1).getId();
-    }
-
-    private boolean isSolutionActive(SolutionSummary solution) {
-        return Solution.Status.valueOf(solution.getStatus()).isActive();
     }
 }

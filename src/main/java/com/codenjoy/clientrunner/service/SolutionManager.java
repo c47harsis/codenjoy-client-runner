@@ -48,7 +48,7 @@ public class SolutionManager {
                 .withMemory(config.getContainer().getMemoryLimitBytes());
     }
 
-    public void runSolution(Token token, File sources) {
+    public int runSolution(Token token, File sources) {
         getSolutions(token).forEach(this::kill);
 
         Solution solution = Solution.from(token, sources);
@@ -63,7 +63,7 @@ public class SolutionManager {
         if (!solution.getStatus().isActive()) {
             log.debug("Attempt to run inactive solution with id: {} and status: {}",
                     solution.getId(), solution.getStatus());
-            return;
+            return solution.getId();
         }
 
         try {
@@ -76,6 +76,8 @@ public class SolutionManager {
                 solution.setStatus(ERROR);
             }
         }
+
+        return solution.getId();
     }
 
     public void killAll(Token token) {
@@ -187,4 +189,8 @@ public class SolutionManager {
         }
     }
 
+    // for testing only
+    void clear() {
+        solutions.clear();
+    }
 }
