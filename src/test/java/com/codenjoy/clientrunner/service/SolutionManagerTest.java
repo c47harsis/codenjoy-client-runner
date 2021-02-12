@@ -76,7 +76,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         solutionManager.runSolution(token, sources);
 
         // then
-        assertTrue(Files.exists(Path.of(sources.getPath(), "Dockerfile")));
+        assertEquals(Files.exists(Path.of(sources.getPath(), "Dockerfile")), true);
     }
 
     @Test
@@ -113,9 +113,9 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         int id3 = solutionManager.runSolution(token, sources);
 
         // then
-        assertFalse(statusOf(id1).isActive());
-        assertFalse(statusOf(id2).isActive());
-        assertTrue(statusOf(id3).isActive());
+        assertEquals(statusOf(id1).isActive(), false);
+        assertEquals(statusOf(id2).isActive(), false);
+        assertEquals(statusOf(id3).isActive(), true);
     }
 
     @Test
@@ -150,7 +150,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         solutionManager.kill(token, id);
 
         // then
-        assertFalse(statusOf(id).isActive());
+        assertEquals(statusOf(id).isActive(), false);
     }
 
     @Test
@@ -165,7 +165,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
                 // when
                 () -> solutionManager.kill(token, nonExistsId)
         );
-        assertTrue(statusOf(id).isActive());
+        assertEquals(statusOf(id).isActive(), true);
     }
 
     private Solution.Status statusOf(int solutionId) {
