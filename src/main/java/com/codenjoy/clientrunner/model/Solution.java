@@ -24,7 +24,7 @@ public class Solution {
     private final String serverUrl;
     private final File sources;
     private final Platform platform;
-    private Integer id;
+    private int id;
     private LocalDateTime created;
     private LocalDateTime started;
     private LocalDateTime finished;
@@ -46,8 +46,8 @@ public class Solution {
         Assert.notNull(token, "Token can not be null");
         Assert.notNull(sources, "Sources can not be null");
         if (!sources.exists()) {
-            throw new IllegalArgumentException("Source folder with path : " +
-                    sources.getPath() + " doesn't exist");
+            throw new IllegalArgumentException("Source folder with path '" +
+                    sources.getPath() + "' doesn't exist");
         }
         Platform platform = detectPlatform(sources);
         if (platform == null) {

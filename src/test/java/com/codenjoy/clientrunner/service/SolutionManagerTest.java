@@ -1,6 +1,6 @@
 package com.codenjoy.clientrunner.service;
 
-import com.codenjoy.clientrunner.TokenTest;
+import com.codenjoy.clientrunner.model.TokenTest;
 import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.exception.SolutionNotFoundException;

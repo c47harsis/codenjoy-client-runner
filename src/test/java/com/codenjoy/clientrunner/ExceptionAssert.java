@@ -13,6 +13,9 @@ public class ExceptionAssert {
             runnable.run();
             fail("Exception expected");
         } catch (Throwable throwable) {
+            if (throwable instanceof AssertionError) {
+                throw throwable;
+            }
             assertEquals(throwable.getClass(), clazz);
 
             if (message != null) {
@@ -20,7 +23,7 @@ public class ExceptionAssert {
                     assertEquals(throwable.getMessage(), message);
                 } catch (AssertionError error) {
                     assertTrue(throwable.getMessage().contains(message),
-                            String.format("Expected message contains '%s' but '%s'",
+                            String.format("Expected message contains '%s' but was '%s'",
                                     message, throwable.getMessage()));
                 }
             }

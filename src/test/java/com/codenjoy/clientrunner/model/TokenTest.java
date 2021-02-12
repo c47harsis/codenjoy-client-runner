@@ -1,19 +1,19 @@
-package com.codenjoy.clientrunner;
+package com.codenjoy.clientrunner.model;
 
-import com.codenjoy.clientrunner.model.Token;
 import org.testng.annotations.Test;
 
 import static com.codenjoy.clientrunner.ExceptionAssert.expectThrows;
 import static org.testng.Assert.assertEquals;
 
 public class TokenTest {
+
     private static final String SERVER_URL_PATTERN
             = "^https?://[0-9A-Za-z_.\\-:]+/codenjoy-contest/board/player/([\\w]+)\\?code=([\\w]+)";
 
-    private static final String PLAYER_ID = "SuperMario";
-    private static final String CODE = "000000000000";
+    public static final String PLAYER_ID = "SuperMario";
+    public static final String CODE = "000000000000";
 
-    private static final String VALID_SERVER_URL
+    public static final String VALID_SERVER_URL
             = "http://5.189.144.144/codenjoy-contest/board/player/" +
             PLAYER_ID + "?code=" + CODE;
 
