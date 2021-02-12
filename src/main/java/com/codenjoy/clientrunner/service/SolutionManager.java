@@ -142,19 +142,17 @@ public class SolutionManager {
 
         docker.startContainer(solution.getContainerId());
 
-        docker.logContainer(solution.getContainerId(), new LogWriter(solution, false));
+        docker.logContainer(solution.getContainerId(),
+                new LogWriter(solution, false));
 
-        docker.waitContainer(solution.getContainerId(), () -> {
-            solution.setFinished(LocalDateTime.now());
-            if (solution.getStatus() == KILLED) {
-                solution.setStatus(FINISHED);
-            }
-            if (solution.getStatus() == RUNNING) {
-                solution.setStatus(ERROR);
-            }
-            docker.removeContainer(solution.getContainerId());
-            // TODO: remove images
-        });
+        docker.waitContainer(solution.getContainerId(),
+                () -> cleanupSolution(solution));
+    }
+
+    private void cleanupSolution(Solution solution) {
+        solution.finish();
+        docker.removeContainer(solution.getContainerId());
+        // TODO: remove images
     }
 
     private void kill(Solution solution) {

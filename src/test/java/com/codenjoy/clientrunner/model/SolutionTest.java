@@ -1,5 +1,6 @@
 package com.codenjoy.clientrunner.model;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -12,6 +13,14 @@ import static org.testng.Assert.assertNotEquals;
 public class SolutionTest {
 
     private Token token = TokenTest.generateValidToken();
+    private File javaSources;
+    private Solution solution;
+
+    @BeforeMethod
+    public void setUp() {
+        javaSources = new File("./");
+        solution = Solution.from(token, javaSources);
+    }
 
     @Test
     public void shouldThrowException_whenSourcesNotFound() {
@@ -33,12 +42,6 @@ public class SolutionTest {
 
     @Test
     public void shouldBuildSolution_whenEverythingIsOk() {
-        // given
-        File sources = new File("./");
-
-        // when
-        Solution solution = Solution.from(token, sources);
-
         // then
         assertEquals(solution.getId(), 0);
         assertEquals(solution.getStatus(), NEW);
@@ -53,15 +56,13 @@ public class SolutionTest {
         assertEquals(solution.getFinished(), null);
 
         assertEquals(solution.getContainerId(), null);
-        assertEquals(solution.getSources(), sources);
+        assertEquals(solution.getSources(), javaSources);
         assertEquals(solution.getImageId(), null);
     }
 
     @Test
     public void shouldUpdateOnlyNotKilledStatus() {
         // given
-        File sources = new File("./");
-        Solution solution = Solution.from(token, sources);
         assertEquals(solution.getStatus(), NEW);
 
         // when then
@@ -76,5 +77,90 @@ public class SolutionTest {
         solution.setStatus(RUNNING);
         assertEquals(solution.getStatus(), KILLED); // still KILLED
     }
+
+    @Test
+    public void shouldFinalized_whenFinish_inNewStatus() {
+        // given
+        solution.setStatus(NEW);
+
+        // when
+        solution.finish();
+
+        // then
+        assertEquals(solution.getStatus(), ERROR);
+        assertSetFinishedDate();
+    }
+
+    private void assertSetFinishedDate() {
+        assertNotEquals(solution.getCreated(), null);
+        assertEquals(solution.getStarted(), null);
+        assertNotEquals(solution.getFinished(), null);
+    }
+
+    @Test
+    public void shouldFinalized_whenFinish_inCompilingStatus() {
+        // given
+        solution.setStatus(COMPILING);
+
+        // when
+        solution.finish();
+
+        // then
+        assertEquals(solution.getStatus(), ERROR);
+        assertSetFinishedDate();
+    }
+
+    @Test
+    public void shouldFinalized_whenFinish_inRunningStatus() {
+        // given
+        solution.setStatus(RUNNING);
+
+        // when
+        solution.finish();
+
+        // then
+        assertEquals(solution.getStatus(), ERROR);
+        assertSetFinishedDate();
+    }
+
+    @Test
+    public void shouldFinalized_whenFinish_inKilledStatus() {
+        // given
+        solution.setStatus(KILLED);
+
+        // when
+        solution.finish();
+
+        // then
+        assertEquals(solution.getStatus(), FINISHED);
+        assertSetFinishedDate();
+    }
+
+    @Test
+    public void shouldFinalized_whenFinish_inErrorStatus() {
+        // given
+        solution.setStatus(ERROR);
+
+        // when
+        solution.finish();
+
+        // then
+        assertEquals(solution.getStatus(), ERROR);
+        assertSetFinishedDate();
+    }
+
+    @Test
+    public void shouldFinalized_whenFinish_inFinishedStatus() {
+        // given
+        solution.setStatus(FINISHED);
+
+        // when
+        solution.finish();
+
+        // then
+        assertEquals(solution.getStatus(), FINISHED);
+        assertSetFinishedDate();
+    }
+
 
 }

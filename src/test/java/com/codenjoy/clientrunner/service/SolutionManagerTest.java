@@ -1,5 +1,6 @@
 package com.codenjoy.clientrunner.service;
 
+import com.codenjoy.clientrunner.model.LogType;
 import com.codenjoy.clientrunner.model.TokenTest;
 import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
@@ -7,8 +8,10 @@ import com.codenjoy.clientrunner.exception.SolutionNotFoundException;
 import com.codenjoy.clientrunner.model.Solution;
 import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.DockerService;
+import com.codenjoy.clientrunner.service.facade.LogWriter;
 import lombok.SneakyThrows;
 import org.mockito.InOrder;
+import org.mockito.invocation.InvocationOnMock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -23,6 +26,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 
@@ -49,6 +53,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
 
     private File sources;
     private Token token;
+    private int id;
 
     @BeforeMethod
     @SneakyThrows
@@ -57,7 +62,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
                 new Random().nextInt(Integer.MAX_VALUE));
         path = Files.createDirectory(path);
         Files.createFile(path.resolve("pom.xml"));
-        this.sources = path.toFile();
+        sources = path.toFile();
     }
 
     @BeforeMethod
@@ -88,11 +93,12 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         String imageId = "imageId";
         String containerId = "containerId";
 
-        willRunContainerWhenImageBuid(imageId);
+        whenImageBuilt_thenRunContainer(imageId);
         when(dockerService.createContainer(anyString(), any())).thenReturn(containerId);
+        whenWaitRunContainer_thenWriteLogs();
 
         // when
-        int id = solutionManager.runSolution(token, sources);
+        id = solutionManager.runSolution(token, sources);
 
         // then
         InOrder inOrder = inOrder(dockerService);
@@ -111,17 +117,66 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
+    public void shouldGetBuildLogs_afterBuildImage() {
+        // given
+        shouldRunContainer_afterBuildImage();
+
+        // when
+        List<String> logs = solutionManager.getLogs(token, id, LogType.BUILD, 0);
+
+        // then
+        assertEquals(logs.toString(), "[Building started, Building finished]");
+    }
+
+    @Test
+    public void shouldGetRuntimeLogs_afterBuildImage() {
+        // given
+        shouldRunContainer_afterBuildImage();
+
+        // when
+        List<String> logs = solutionManager.getLogs(token, id, LogType.RUNTIME, 0);
+
+        // then
+        assertEquals(logs.toString(), "[Running started, Running finished]");
+    }
+
+    @Test
+    public void shouldGetBuildLogs_afterKillSolution() {
+        // given
+        shouldWaitStopContainer_afterRunContainer();
+
+        // when
+        List<String> logs = solutionManager.getLogs(token, id, LogType.BUILD, 0);
+
+        // then
+        assertEquals(logs.toString(), "[Building started, Building finished]");
+    }
+
+    @Test
+    public void shouldGetRuntimeLogs_afterKillSolution() {
+        // given
+        shouldWaitStopContainer_afterRunContainer();
+
+        // when
+        List<String> logs = solutionManager.getLogs(token, id, LogType.RUNTIME, 0);
+
+        // then
+        assertEquals(logs.toString(), "[Running started, Running finished]");
+    }
+
+    @Test
     public void shouldWaitStopContainer_afterRunContainer() {
         // given
         String imageId = "imageId";
         String containerId = "containerId";
 
-        willRunContainerWhenImageBuid(imageId);
-        willFinishedWhenWaitContainer();
+        whenImageBuilt_thenRunContainer(imageId);
         when(dockerService.createContainer(anyString(), any())).thenReturn(containerId);
+        whenWaitRunContainer_thenWriteLogs();
+        whenWaitContainer_thenFinishedSolution();
 
         // when
-        int id = solutionManager.runSolution(token, sources);
+        id = solutionManager.runSolution(token, sources);
 
         // then
         InOrder inOrder = inOrder(dockerService);
@@ -140,18 +195,33 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         assertNotEquals(solution.getFinished(), null);
     }
 
-    private void willFinishedWhenWaitContainer() {
+    private void whenWaitContainer_thenFinishedSolution() {
         doAnswer(invocation -> {
             invocation.getArgument(1, Runnable.class).run();
             return null;
         }).when(dockerService).waitContainer(any(), any());
     }
 
-    private void willRunContainerWhenImageBuid(String imageId) {
+    private void whenWaitRunContainer_thenWriteLogs() {
         doAnswer(invocation -> {
+            writeLogs(invocation, "Running", 1, "");
+            return null;
+        }).when(dockerService).logContainer(any(), any());
+    }
+
+    private void whenImageBuilt_thenRunContainer(String imageId) {
+        doAnswer(invocation -> {
+            writeLogs(invocation, "Building", 2, "\n");
             invocation.getArgument(3, Consumer.class).accept(imageId);
             return null;
         }).when(dockerService).buildImage(any(), any(), any(), any());
+    }
+
+    private void writeLogs(InvocationOnMock invocation, String phase, int index, String newLine) {
+        LogWriter writer = invocation.getArgument(index, LogWriter.class);
+        writer.write(phase + " started" + newLine);
+        writer.write(phase + " finished" + newLine);
+        writer.close();
     }
 
     @Test
@@ -172,7 +242,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
                 .buildImage(isA(File.class), anyString(), any(), any());
 
         // when
-        int id = solutionManager.runSolution(token, sources);
+        id = solutionManager.runSolution(token, sources);
 
         // then
         assertEquals(statusOf(id), ERROR);
@@ -219,7 +289,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
     @Test
     public void shouldKillTheSolution_whenKill_withExistingSolution() {
         // given
-        int id = solutionManager.runSolution(token, sources);
+        id = solutionManager.runSolution(token, sources);
 
         // when
         solutionManager.kill(token, id);
@@ -231,7 +301,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
     @Test
     public void shouldThrowAnException_whenKill_withNonExistingSolution() {
         // given
-        int id = solutionManager.runSolution(token, sources);
+        id = solutionManager.runSolution(token, sources);
 
         // then
         expectThrows(SolutionNotFoundException.class,

@@ -8,8 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.codenjoy.clientrunner.model.Solution.Status.KILLED;
-import static com.codenjoy.clientrunner.model.Solution.Status.NEW;
+import static com.codenjoy.clientrunner.model.Solution.Status.*;
 
 @Getter
 @Setter
@@ -83,6 +82,16 @@ public class Solution {
     public boolean allows(Token token) {
         return Objects.equals(playerId, token.getPlayerId())
                 && Objects.equals(code, token.getCode());
+    }
+
+    public void finish() {
+        finished = LocalDateTime.now();
+
+        if (status.getStage() <= RUNNING.getStage()) {
+            status = ERROR;
+        } else if (status == KILLED) {
+            status = FINISHED;
+        }
     }
 
     @Getter
