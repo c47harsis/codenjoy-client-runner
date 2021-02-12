@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 public class SolutionManager {
 
+    public static final String DOCKERFILE = "Dockerfile";
     private final AtomicInteger idGenerator = new AtomicInteger(0);
     private final DockerConfig config;
     private HostConfig hostConfig;
@@ -168,8 +169,8 @@ public class SolutionManager {
     private void addDockerfile(Solution solution) {
         String platformFolder = solution.getPlatform().getFolderName();
         try {
-            File destination = new File(solution.getSources(), "Dockerfile");
-            String path = config.getDockerfilesFolder() + "/" + platformFolder + "/Dockerfile";
+            File destination = new File(solution.getSources(), DOCKERFILE);
+            String path = config.getDockerfilesFolder() + "/" + platformFolder + "/" + DOCKERFILE;
             URL url = getClass().getResource(path);
             FileUtils.copyURLToFile(url, destination);
         } catch (IOException e) {
