@@ -27,14 +27,14 @@ import static org.testng.Assert.assertThrows;
 @SpringBootTest(classes = ClientRunnerApplication.class,
         properties = "spring.main.allow-bean-definition-overriding=true")
 @TestExecutionListeners(MockitoTestExecutionListener.class)
-public class ClientServerServiceTest extends AbstractTestNGSpringContextTests {
+public class ClientRunnerServiceTest extends AbstractTestNGSpringContextTests {
 
     public static final String VALID_SERVER_URL = "http://5.189.144.144/codenjoy-contest/board/player/0?code=000000000000";
     public static final String VALID_REPO_URL = "https://github.com/codenjoyme/codenjoy-javascript-client.git";
 
     @InjectMocks
     @Autowired
-    private ClientServerService service;
+    private ClientRunnerService service;
 
     @SpyBean
     private ClientServerServiceConfig config;

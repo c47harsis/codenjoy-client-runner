@@ -2,7 +2,7 @@ package com.codenjoy.clientrunner;
 
 import com.codenjoy.clientrunner.dto.CheckRequest;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
-import com.codenjoy.clientrunner.service.ClientServerService;
+import com.codenjoy.clientrunner.service.ClientRunnerService;
 import com.codenjoy.clientrunner.service.SolutionManager;
 import com.codenjoy.clientrunner.service.facade.DockerService;
 import com.codenjoy.clientrunner.service.facade.GitService;
@@ -34,7 +34,7 @@ public class IntegrationTest extends AbstractTestNGSpringContextTests {
     private SolutionManager solutionManager;
 
     @Autowired
-    private ClientServerService service;
+    private ClientRunnerService service;
 
     private List<SolutionSummary> solutions;
     private List<String> logs;

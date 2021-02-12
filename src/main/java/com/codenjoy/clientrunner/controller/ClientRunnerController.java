@@ -1,7 +1,7 @@
 package com.codenjoy.clientrunner.controller;
 
 import com.codenjoy.clientrunner.dto.CheckRequest;
-import com.codenjoy.clientrunner.service.ClientServerService;
+import com.codenjoy.clientrunner.service.ClientRunnerService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +12,9 @@ import static org.springframework.http.ResponseEntity.status;
 
 @RestController("/solutions")
 @AllArgsConstructor
-public class ClientServerController {
+public class ClientRunnerController {
 
-    private final ClientServerService service;
+    private final ClientRunnerService service;
 
     @PostMapping("/check")
     @ResponseStatus(HttpStatus.OK)

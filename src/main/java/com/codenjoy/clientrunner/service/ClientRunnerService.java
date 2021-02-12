@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class ClientServerService {
+public class ClientRunnerService {
 
     private final ClientServerServiceConfig config;
     private final GitService git;
