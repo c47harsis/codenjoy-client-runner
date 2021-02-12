@@ -16,8 +16,7 @@ import org.testng.annotations.Test;
 
 import java.util.List;
 
-import static com.codenjoy.clientrunner.model.Solution.Status.KILLED;
-import static com.codenjoy.clientrunner.model.Solution.Status.RUNNING;
+import static com.codenjoy.clientrunner.model.Solution.Status.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -61,8 +60,8 @@ public class IntegrationTest extends AbstractTestNGSpringContextTests {
         createSolution(serverUrl, repo);
         waitForBuildSolution(serverUrl, 2);
 
-        // then one was KILLED
-        assertThat(solution(0)).hasId(1).inStatus(KILLED);
+        // then one was FINISHED
+        assertThat(solution(0)).hasId(1).inStatus(FINISHED);
         // another one is still RUNNING
         assertThat(solution(1)).hasId(2).inStatus(RUNNING);
 
@@ -70,9 +69,9 @@ public class IntegrationTest extends AbstractTestNGSpringContextTests {
         SolutionSummary solution = service.getSolutionSummary(serverUrl, 2);
         assertThat(solution).hasId(2).inStatus(RUNNING);
 
-        // when get KILLED solution
+        // when get FINISHED solution
         solution = service.getSolutionSummary(serverUrl, 1);
-        assertThat(solution).hasId(1).inStatus(KILLED);
+        assertThat(solution).hasId(1).inStatus(FINISHED);
 
         // when get build logs of RUNNING solution
         readBuildLogs(serverUrl, 2);
@@ -94,11 +93,10 @@ public class IntegrationTest extends AbstractTestNGSpringContextTests {
         service.killSolution(serverUrl, 2);
         refreshSolutions(serverUrl);
 
-        // then one was KILLED
-        assertThat(solution(0)).hasId(1).inStatus(KILLED);
-        // another one is also KILLED
-        assertThat(solution(1)).hasId(2).inStatus(KILLED);
-
+        // then one was FINISHED
+        assertThat(solution(0)).hasId(1).inStatus(FINISHED);
+        // another one is also FINISHED
+        assertThat(solution(1)).hasId(2).inStatus(FINISHED);
     }
 
     @SneakyThrows
