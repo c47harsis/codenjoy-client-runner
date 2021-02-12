@@ -5,7 +5,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 
 import static com.codenjoy.clientrunner.ExceptionAssert.expectThrows;
-import static com.codenjoy.clientrunner.model.Solution.Status.NEW;
+import static com.codenjoy.clientrunner.model.Solution.Status.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
 
@@ -55,6 +55,26 @@ public class SolutionTest {
         assertEquals(solution.getContainerId(), null);
         assertEquals(solution.getSources(), sources);
         assertEquals(solution.getImageId(), null);
+    }
+
+    @Test
+    public void shouldUpdateOnlyNotKilledStatus() {
+        // given
+        File sources = new File("./");
+        Solution solution = Solution.from(token, sources);
+        assertEquals(solution.getStatus(), NEW);
+
+        // when then
+        solution.setStatus(RUNNING);
+        assertEquals(solution.getStatus(), RUNNING);
+
+        // when then
+        solution.setStatus(KILLED);
+        assertEquals(solution.getStatus(), KILLED);
+
+        // when then
+        solution.setStatus(RUNNING);
+        assertEquals(solution.getStatus(), KILLED); // still KILLED
     }
 
 }
