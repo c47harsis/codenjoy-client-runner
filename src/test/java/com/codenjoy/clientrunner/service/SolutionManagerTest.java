@@ -1,6 +1,7 @@
 package com.codenjoy.clientrunner.service;
 
 import com.codenjoy.clientrunner.TokenTest;
+import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.exception.SolutionNotFoundException;
 import com.codenjoy.clientrunner.model.Solution;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.AfterMethod;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Random;
 
 import static com.codenjoy.clientrunner.model.Solution.Status.ERROR;
+import static com.codenjoy.clientrunner.model.Solution.Status.KILLED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.*;
@@ -35,6 +38,9 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
 
     @MockBean
     private DockerService dockerService;
+
+    @SpyBean
+    private DockerConfig config;
 
     @Autowired
     private SolutionManager solutionManager;
@@ -111,6 +117,25 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         assertFalse(statusOfSolutionById(++lastId).isActive());
         assertFalse(statusOfSolutionById(++lastId).isActive());
         assertTrue(statusOfSolutionById(++lastId).isActive());
+    }
+
+    @Test
+   public void shouldDontRunning_whenRunSolution_withKillItImmediately() {
+        // given
+        // simulate multithreading TODO to use synchronized section inside solutionManager
+        when(config.getDockerfilesFolder()).thenAnswer(invocation -> {
+            SolutionSummary summary = solutionManager.getAllSolutionSummary(token).get(0);
+            solutionManager.kill(token, summary.getId());
+            return invocation.callRealMethod();
+        });
+
+        // when
+        solutionManager.runSolution(token, sources);
+
+        // then
+        SolutionSummary summary = solutionManager.getAllSolutionSummary(token).get(0);
+        assertEquals(KILLED.toString(), summary.getStatus());
+        verify(dockerService, never()).buildImage(any(), any(), any(), any());
     }
 
     @Test

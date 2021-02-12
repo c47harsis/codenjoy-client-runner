@@ -55,9 +55,11 @@ public class SolutionManager {
         solution.setId(idGenerator.incrementAndGet());
         solutions.add(solution);
 
-        /* TODO: try to avoid copy Dockerfile. https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
+        /* TODO: try to avoid copy Dockerfile.
+            https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild */
         addDockerfile(solution);
 
+        // TODO this is multithreading crunch, to use synchronized section
         if (!solution.getStatus().isActive()) {
             log.debug("Attempt to run inactive solution with id: {} and status: {}",
                     solution.getId(), solution.getStatus());
