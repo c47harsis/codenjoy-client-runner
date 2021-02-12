@@ -26,30 +26,42 @@ public class TokenTest {
         Token result = Token.from(VALID_SERVER_URL, SERVER_URL_PATTERN);
 
         // then
-        assertEquals(VALID_SERVER_URL, result.getServerUrl());
-        assertEquals(PLAYER_ID, result.getPlayerId());
-        assertEquals(CODE, result.getCode());
+        assertEquals(result.getServerUrl(), VALID_SERVER_URL);
+        assertEquals(result.getPlayerId(), PLAYER_ID);
+        assertEquals(result.getCode(), CODE);
     }
 
     @Test
-    public void shouldThrowAnException_whenInvalidServerUrlPassed() {
-        String invalidServerUrl = "I am invalid server URL";
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> Token.from(invalidServerUrl, SERVER_URL_PATTERN)
-        );
+    public void shouldThrowException_whenInvalidServerUrlPassed() {
+        try {
+            Token.from("Invalid server URL", SERVER_URL_PATTERN);
+            fail("Exception expected");
+        } catch (IllegalArgumentException exception) {
+            assertEquals(exception.getMessage(),
+                    "Given invalid server URL: 'Invalid server URL' is not match " +
+                            "'^https?://[0-9A-Za-z_.\\-:]+/codenjoy-contest/board/player/([\\w]+)\\?code=([\\w]+)'");
+        }
     }
 
     @Test
-    public void shouldThrowIllegalArgumentException_whenNullPassed() {
+    public void shouldThrowException_whenNullPassed_asServerUrl() {
+        try {
+            Token.from(null, "not null");
+            fail("Exception expected");
+        } catch (IllegalArgumentException exception) {
+            assertEquals(exception.getMessage(),
+                    "Server URL must not be null");
+        }
+    }
+
+    @Test
+    public void shouldThrowException_whenNullPassed_asUrlPattern() {
         try {
             Token.from("not null", null);
-            Token.from(null, "not null");
-            Token.from(null, null);
-            fail("IllegalArgumentException was expected");
-        } catch (Throwable ex) {
-            assertTrue(ex instanceof IllegalArgumentException);
+            fail("Exception expected");
+        } catch (IllegalArgumentException exception) {
+            assertEquals(exception.getMessage(),
+                    "URL pattern must not be null");
         }
     }
 }
