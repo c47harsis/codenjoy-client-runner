@@ -1,7 +1,7 @@
 package com.codenjoy.clientrunner.controller;
 
 import com.codenjoy.clientrunner.dto.CheckRequest;
-import com.codenjoy.clientrunner.service.LogType;
+import com.codenjoy.clientrunner.model.LogType;
 import com.codenjoy.clientrunner.service.ClientRunnerService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;

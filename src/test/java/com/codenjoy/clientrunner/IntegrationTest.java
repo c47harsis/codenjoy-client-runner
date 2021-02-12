@@ -2,7 +2,7 @@ package com.codenjoy.clientrunner;
 
 import com.codenjoy.clientrunner.dto.CheckRequest;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
-import com.codenjoy.clientrunner.service.LogType;
+import com.codenjoy.clientrunner.model.LogType;
 import com.codenjoy.clientrunner.service.ClientRunnerService;
 import com.codenjoy.clientrunner.service.SolutionManager;
 import com.codenjoy.clientrunner.service.facade.DockerService;

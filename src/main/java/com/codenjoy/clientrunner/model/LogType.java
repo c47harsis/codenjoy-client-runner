@@ -1,6 +1,5 @@
-package com.codenjoy.clientrunner.service;
+package com.codenjoy.clientrunner.model;
 
-import com.codenjoy.clientrunner.model.Solution;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
