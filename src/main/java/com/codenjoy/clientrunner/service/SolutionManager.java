@@ -188,9 +188,11 @@ public class SolutionManager {
             return log.skip(offset)
                     .collect(toList());
         } catch (IOException e) {
-            log.error("Log file not exists: " + logFilePath);
-            throw new IllegalStateException("Solution with id: " + solution.getId()
-                    + " is in " + solution.getStatus() + " status, but build log not exists");
+            log.debug("Solution with id: '{}' is in '{}' status, therefore log file '{}' not exists",
+                    solution.getId(),
+                    solution.getStatus(),
+                    logFilePath);
+            return Arrays.asList();
         }
     }
 
