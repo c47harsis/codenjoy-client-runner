@@ -12,7 +12,8 @@ public enum Platform {
     JAVA("pom.xml"),
     NODEJS("package.json"),
     RUBY("Gemfile"),
-    PYTHON("main.py");
+    PYTHON("main.py"),
+    GO("main.go");
 
     private final String filename;
 
