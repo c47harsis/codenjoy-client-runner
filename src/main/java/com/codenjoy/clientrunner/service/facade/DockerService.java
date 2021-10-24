@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -145,8 +146,10 @@ public class DockerService {
                 .exec(new ResultCallback.Adapter<>() {
 
                     @Override
-                    public void onNext(Frame object) {
-                        writer.write(object);
+                    public void onNext(Frame frame) {
+                        String string = new String(frame.getPayload(),
+                                StandardCharsets.UTF_8);
+                        writer.write(string);
                     }
 
                     @Override

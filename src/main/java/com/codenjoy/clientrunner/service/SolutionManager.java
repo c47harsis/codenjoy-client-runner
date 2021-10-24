@@ -18,6 +18,7 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -181,8 +182,11 @@ public class SolutionManager {
 
     private List<String> readLogs(Solution solution, LogType type, int offset) {
         String logFilePath = solution.getSources() + "/" + type.getFilename();
-        try (Stream<String> log = Files.lines(Paths.get(logFilePath))) {
-            return log.skip(offset).collect(Collectors.toList());
+        try (Stream<String> log =
+                     Files.lines(Paths.get(logFilePath),
+                        StandardCharsets.UTF_8)) {
+            return log.skip(offset)
+                    .collect(toList());
         } catch (IOException e) {
             log.error("Log file not exists: " + logFilePath);
             throw new IllegalStateException("Solution with id: " + solution.getId()

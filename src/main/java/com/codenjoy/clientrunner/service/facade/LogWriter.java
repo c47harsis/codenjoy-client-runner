@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 public class LogWriter {
 
@@ -14,19 +15,17 @@ public class LogWriter {
     public static final String RUNTIME_LOG = "/app.log";
 
     private final Writer writer;
-    private final boolean isBuild;
 
     @SneakyThrows
     public LogWriter(Solution solution, boolean isBuild) {
-        this.isBuild = isBuild;
         String file = isBuild ? BUILD_LOG : RUNTIME_LOG;
-        writer = new BufferedWriter(new FileWriter(solution.getSources() + file));
+        writer = new BufferedWriter(new FileWriter(solution.getSources() + file,
+                StandardCharsets.UTF_8));
     }
 
     public void write(Object object) {
         try {
-            String newLineSeparator = isBuild ? "" : "\n";
-            writer.write(object.toString() + newLineSeparator);
+            writer.write(object.toString());
             writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
