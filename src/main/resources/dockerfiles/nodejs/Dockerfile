@@ -14,4 +14,4 @@ RUN npm install 2>&1
 
 COPY . .
 
-ENTRYPOINT npm start "${GAME_TO_RUN_VAR}" "${SERVER_URL_VAR}"
+ENTRYPOINT npm start "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR"

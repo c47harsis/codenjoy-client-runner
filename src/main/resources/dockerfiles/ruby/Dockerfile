@@ -13,4 +13,4 @@ ADD game.rb .
 
 RUN bundle install
 
-ENTRYPOINT ruby ./game.rb "${GAME_TO_RUN_VAR}" "${SERVER_URL_VAR}"
+ENTRYPOINT ruby ./game.rb "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR"

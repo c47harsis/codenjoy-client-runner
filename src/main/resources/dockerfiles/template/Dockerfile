@@ -16,4 +16,4 @@ COPY . .
 # this will help the container stay running
 # ENTRYPOINT tail -f /dev/null
 
-ENTRYPOINT lang ./main.lng "${GAME_TO_RUN_VAR}" "${SERVER_URL_VAR}"
+ENTRYPOINT lang ./main.lng "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR"

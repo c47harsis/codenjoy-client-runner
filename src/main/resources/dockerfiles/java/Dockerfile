@@ -23,4 +23,4 @@ WORKDIR /app
 
 COPY --from=build /app/target/*-exec.jar ./app.jar
 
-ENTRYPOINT java -jar ./app.jar "${GAME_TO_RUN_VAR}" "${SERVER_URL_VAR}"
+ENTRYPOINT java -jar ./app.jar "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR"

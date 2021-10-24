@@ -12,4 +12,4 @@ COPY . .
 
 RUN php /usr/bin/composer u
 
-ENTRYPOINT php ./index.php "${GAME_TO_RUN_VAR}" "${SERVER_URL_VAR}"
+ENTRYPOINT php ./index.php "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR"

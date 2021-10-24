@@ -10,4 +10,4 @@ WORKDIR /app
 
 COPY . .
 
-ENTRYPOINT python -u ./main.py "${GAME_TO_RUN_VAR}" "${SERVER_URL_VAR}"
+ENTRYPOINT python -u ./main.py "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR"
