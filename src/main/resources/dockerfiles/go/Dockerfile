@@ -1,4 +1,4 @@
-FROM golang:1.12.0-alpine3.9
+FROM golang:1.16-alpine
 
 ARG SERVER_URL
 ENV SERVER_URL_VAR=$SERVER_URL
@@ -11,8 +11,8 @@ RUN apk --update add git less openssh && \
     rm -rf /var/lib/apt/lists/* && \
     rm /var/cache/apk/*
 
-COPY . /app
-
 WORKDIR /app
 
-ENTRYPOINT go run main.go "${GAME_TO_RUN_VAR}" "${SERVER_URL_VAR}"
+COPY . .
+
+ENTRYPOINT go run ./main.go "${GAME_TO_RUN_VAR}" "${SERVER_URL_VAR}"
