@@ -8,9 +8,13 @@ import com.codenjoy.clientrunner.service.SolutionManager;
 import com.codenjoy.clientrunner.service.facade.DockerService;
 import com.codenjoy.clientrunner.service.facade.GitService;
 import lombok.SneakyThrows;
+import org.apache.commons.lang.SystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 
@@ -22,7 +26,17 @@ import static org.testng.Assert.assertTrue;
 
 @SpringBootTest(classes = ClientRunnerApplication.class,
         properties = "spring.main.allow-bean-definition-overriding=true")
+@ContextConfiguration(initializers = IntegrationTest.Initializer.class)
 public class IntegrationTest extends AbstractTestNGSpringContextTests {
+
+    public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        @Override
+        public void initialize(ConfigurableApplicationContext context) {
+            if (SystemUtils.IS_OS_WINDOWS) {
+                System.setProperty("DOCKER_HOST", "tcp://localhost:2375");
+            }
+        }
+    }
 
     @SpyBean
     private DockerService docker;
