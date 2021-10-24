@@ -9,11 +9,11 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class ClientServerServiceConfig {
 
-    private SolutionFolder solutionFolder;
+    private Solutions solutions;
     private String serverRegex;
 
     @Data
-    public static class SolutionFolder {
+    public static class Solutions {
         private String path;
         private String pattern;
     }

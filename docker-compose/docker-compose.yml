@@ -8,4 +8,4 @@ services:
       - "${PORT}:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${SOLUTIONS_FOLDER}:/solutions
+      - ${SERVICE_SOLUTIONS_PATH}:/solutions

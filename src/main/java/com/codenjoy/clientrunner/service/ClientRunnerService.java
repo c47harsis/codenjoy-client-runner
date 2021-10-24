@@ -62,13 +62,13 @@ public class ClientRunnerService {
 
     private File getSolutionDirectory(Token token) {
         return new File(String.format("%s/%s/%s/%s",
-                config.getSolutionFolder().getPath(),
+                config.getSolutions().getPath(),
                 token.getPlayerId(), token.getCode(),
                 now()));
     }
 
     private String now() {
-        String pattern = config.getSolutionFolder().getPattern();
+        String pattern = config.getSolutions().getPattern();
         return LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern(pattern));
     }
