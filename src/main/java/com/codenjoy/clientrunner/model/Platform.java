@@ -13,7 +13,8 @@ public enum Platform {
     NODEJS("package.json"),
     RUBY("Gemfile"),
     PYTHON("main.py"),
-    GO("main.go");
+    GO("main.go"),
+    PHP("index.php");
 
     private final String filename;
 
