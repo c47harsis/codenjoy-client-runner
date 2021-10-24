@@ -9,6 +9,7 @@ import java.util.Arrays;
 @Getter
 public enum Platform {
 
+    PSEUDO("pseudo"), // TODO надо более четкий критерий, т.к. в pseudo есть pom.xml тоже
     JAVA("pom.xml"),
     NODEJS("package.json"),
     RUBY("Gemfile"),
