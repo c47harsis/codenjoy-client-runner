@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3.10.0-alpine
 
 ARG SERVER_URL
 ENV SERVER_URL_VAR=$SERVER_URL

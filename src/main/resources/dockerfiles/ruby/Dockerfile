@@ -8,8 +8,9 @@ ENV GAME_TO_RUN_VAR=$GAME_TO_RUN
 
 WORKDIR /app
 
-ADD Gemfile /app/
-ADD game.rb /app/
+ADD Gemfile .
+ADD game.rb .
+
 RUN bundle install
 
-ENTRYPOINT ruby game.rb "${GAME_TO_RUN_VAR}" "${SERVER_URL_VAR}"
+ENTRYPOINT ruby ./game.rb "${GAME_TO_RUN_VAR}" "${SERVER_URL_VAR}"
