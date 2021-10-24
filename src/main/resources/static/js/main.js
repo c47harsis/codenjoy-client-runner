@@ -249,12 +249,12 @@ function fetchSolutionStatus(solutionId) {
     })
 }
 
-function fetchRuntimeLogs(solutionId) {
+function fetchLogs(logsType, solutionId) {
     var linesCount = $('#logField .logLine').length;
 
     $.ajax({
         type: "get",
-        url: "runtime_logs",
+        url: logsType + "_logs",
         data: {
             serverUrl: getUrls().serverUrl,
             solutionId: solutionId,
@@ -273,25 +273,10 @@ function fetchRuntimeLogs(solutionId) {
     })
 }
 
+function fetchRuntimeLogs(solutionId) {
+    fetchLogs("runtime", solutionId);
+}
+
 function fetchBuildLogs(solutionId) {
-    var linesCount = $('#logField .logLine').length;
-    $.ajax({
-        type: "get",
-        url: "build_logs",
-        data: {
-            serverUrl: getUrls().serverUrl,
-            solutionId: solutionId,
-            offset: linesCount
-        },
-        dataType: "json",
-        contentType: "application/json",
-        cache: "false",
-        success: function (response) {
-            console.log(response);
-            $.each(response, function (i, logStr) {
-                logStr = logStr.replaceAll(' ', '&nbsp;');
-                $('#logField').append('<samp class="logLine">' + logStr + '</samp><br/>');
-            });
-        }
-    })
+    fetchLogs("build", solutionId);
 }
