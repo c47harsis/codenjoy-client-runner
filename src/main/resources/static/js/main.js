@@ -266,6 +266,7 @@ function fetchRuntimeLogs(solutionId) {
         success: function (response) {
             console.log(response);
             $.each(response, function (i, logStr) {
+                logStr = logStr.replaceAll(' ', '&nbsp;');
                 $('#logField').append('<samp class="logLine">' + logStr + '</samp><br/>');
             });
         }
@@ -288,6 +289,7 @@ function fetchBuildLogs(solutionId) {
         success: function (response) {
             console.log(response);
             $.each(response, function (i, logStr) {
+                logStr = logStr.replaceAll(' ', '&nbsp;');
                 $('#logField').append('<samp class="logLine">' + logStr + '</samp><br/>');
             });
         }
