@@ -9,13 +9,13 @@ import java.util.Arrays;
 @Getter
 public enum Platform {
 
-    PSEUDO("pseudo"), // TODO надо более четкий критерий, т.к. в pseudo есть pom.xml тоже
-    JAVA("pom.xml"),
-    NODEJS("package.json"),
-    RUBY("Gemfile"),
-    PYTHON("main.py"),
-    GO("main.go"),
-    PHP("index.php");
+    PSEUDO("pseudo.mrk"),
+    JAVA("java.mrk"),
+    NODEJS("javascript.mrk"),
+    RUBY("ruby.mrk"),
+    PYTHON("python.mrk"),
+    GO("go.mrk"),
+    PHP("php.mrk");
 
     private final String filename;
 
