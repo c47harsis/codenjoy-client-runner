@@ -27,4 +27,4 @@ COPY --from=build /app/target/client-pseudo-exec.jar ./app.jar
 COPY rules $PSEUDO_RULES_VAR
 
 
-ENTRYPOINT java -jar ./app.jar "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR" "$SERVER_URL_VAR" "$PSEUDO_RULES_VAR"
+ENTRYPOINT java -jar ./app.jar "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR" "$PSEUDO_RULES_VAR"
