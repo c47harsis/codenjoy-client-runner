@@ -6,7 +6,7 @@ ENV SERVER_URL_VAR=$SERVER_URL
 ARG GAME_TO_RUN
 ENV GAME_TO_RUN_VAR=$GAME_TO_RUN
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY package*.json ./
 RUN npm install 2>&1
