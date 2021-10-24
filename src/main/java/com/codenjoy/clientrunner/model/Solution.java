@@ -20,6 +20,7 @@ public class Solution {
 
     private final String playerId;
     private final String code;
+    private final String gameToRun;
     private final String serverUrl;
     private final File sources;
     private final Platform platform;
@@ -31,9 +32,10 @@ public class Solution {
     private String containerId;
     private volatile Status status;
 
-    private Solution(String playerId, String code, String serverUrl, File sources, Platform platform) {
+    private Solution(String playerId, String code, String gameToRun, String serverUrl, File sources, Platform platform) {
         this.playerId = playerId;
         this.code = code;
+        this.gameToRun = gameToRun;
         this.serverUrl = serverUrl;
         this.status = NEW;
         this.sources = sources;
@@ -55,7 +57,9 @@ public class Solution {
                             "for sources: '%s'", sources));
         }
         return new Solution(token.getPlayerId(), token.getCode(),
-                token.getServerUrl(), sources, platform);
+                token.getGameToRun(),
+                token.getServerUrl(),
+                sources, platform);
     }
 
     private static Platform detectPlatform(File sources) {

@@ -13,6 +13,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Token {
 
+    private final String gameToRun;
     private final String serverUrl;
     private final String playerId;
     private final String code;
@@ -27,6 +28,7 @@ public final class Token {
                     String.format("Given invalid server URL: '%s' " +
                             "is not match '%s'", serverUrl, urlPattern));
         }
-        return new Token(serverUrl, matcher.group(1), matcher.group(2));
+        String gameToRun = "mollymage"; // TODO get this from url?
+        return new Token(gameToRun, serverUrl, matcher.group(1), matcher.group(2));
     }
 }

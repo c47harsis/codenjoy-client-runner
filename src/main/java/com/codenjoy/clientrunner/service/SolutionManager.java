@@ -24,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.codenjoy.clientrunner.model.Solution.Status.*;
@@ -70,7 +69,9 @@ public class SolutionManager {
 
         try {
             solution.setStatus(COMPILING);
-            docker.buildImage(sources, solution.getServerUrl(),
+            docker.buildImage(sources,
+                    solution.getGameToRun(),
+                    solution.getServerUrl(),
                     new LogWriter(solution, true),
                     imageId -> runContainer(solution, imageId));
         } catch (Throwable e) {

@@ -28,7 +28,8 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class DockerService {
 
-    public static final String SERVER_PARAMETER = "CODENJOY_URL";
+    public static final String SERVER_URL = "SERVER_URL";
+    public static final String GAME_TO_RUN = "GAME_TO_RUN";
 
     private final DockerClientConfig dockerClientConfig = DefaultDockerClientConfig
             .createDefaultConfigBuilder()
@@ -104,9 +105,10 @@ public class DockerService {
                 .exec().getId();
     }
 
-    public void buildImage(File sources, String serverUrl, LogWriter writer, Consumer<String> onCompete) {
+    public void buildImage(File sources, String gameToRun, String serverUrl, LogWriter writer, Consumer<String> onCompete) {
         docker.buildImageCmd(sources)
-                .withBuildArg(SERVER_PARAMETER, serverUrl)
+                .withBuildArg(GAME_TO_RUN, gameToRun)
+                .withBuildArg(SERVER_URL, serverUrl)
                 .exec(new BuildImageResultCallback() {
                     private String imageId;
                     private String error;

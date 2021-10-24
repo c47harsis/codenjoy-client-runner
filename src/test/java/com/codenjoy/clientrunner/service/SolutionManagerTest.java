@@ -211,10 +211,12 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
 
     private void whenImageBuilt_thenRunContainer(String imageId) {
         doAnswer(invocation -> {
-            writeLogs(invocation, "Building", 2, "\n");
-            invocation.getArgument(3, Consumer.class).accept(imageId);
+            writeLogs(invocation, "Building", 3, "\n");
+            invocation.getArgument(4, Consumer.class).accept(imageId);
             return null;
-        }).when(dockerService).buildImage(any(), any(), any(), any());
+        }).when(dockerService).buildImage(any(),
+                anyString(), anyString(),
+                any(), any());
     }
 
     private void writeLogs(InvocationOnMock invocation, String phase, int index, String newLine) {
@@ -230,7 +232,9 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         solutionManager.runSolution(token, sources);
 
         // then
-        verify(dockerService, only()).buildImage(same(sources), same(token.getServerUrl()), any(), any());
+        verify(dockerService, only()).buildImage(same(sources),
+                same(token.getGameToRun()), same(token.getServerUrl()),
+                any(), any());
     }
 
     @Test
@@ -239,7 +243,9 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         // given
         doThrow(RuntimeException.class)
                 .when(dockerService)
-                .buildImage(isA(File.class), anyString(), any(), any());
+                .buildImage(any(),
+                        anyString(), anyString(),
+                        any(), any());
 
         // when
         id = solutionManager.runSolution(token, sources);
@@ -278,7 +284,9 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         // then
         SolutionSummary summary = solutionManager.getAllSolutionSummary(token).get(0);
         assertEquals(summary.getStatus(), KILLED.name());
-        verify(dockerService, never()).buildImage(any(), any(), any(), any());
+        verify(dockerService, never()).buildImage(any(),
+                anyString(), anyString(),
+                any(), any());
     }
 
     private void kill(Token token) {

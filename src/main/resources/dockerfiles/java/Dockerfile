@@ -8,7 +8,12 @@ RUN --mount=type=cache,target=/root/.m2 mvn -f /app/pom.xml -B clean compile ass
 
 # package stage
 FROM openjdk:11-jre-slim
-ARG CODENJOY_URL
-ENV CODENJOY_URL_VAR=$CODENJOY_URL
+
+ARG SERVER_URL
+ENV SERVER_URL_VAR=$SERVER_URL
+
+ARG GAME_TO_RUN
+ENV GAME_TO_RUN_VAR=$GAME_TO_RUN
+
 COPY --from=build /app/target/*-exec.jar /app.jar
-ENTRYPOINT java -jar /app.jar "${CODENJOY_URL_VAR}"
+ENTRYPOINT java -jar /app.jar "${GAME_TO_RUN_VAR}" "${SERVER_URL_VAR}"
