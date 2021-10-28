@@ -11,6 +11,7 @@ public enum Platform {
 
     PSEUDO("pseudo.mrk"),
     JAVA("java.mrk"),
+    SCALA("scala.mrk"),
     NODEJS("javascript.mrk"),
     RUBY("ruby.mrk"),
     PYTHON("python.mrk"),
