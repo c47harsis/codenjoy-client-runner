@@ -1,12 +1,9 @@
 package com.codenjoy.clientrunner.service;
 
-import com.codenjoy.clientrunner.model.LogType;
-import com.codenjoy.clientrunner.model.TokenTest;
+import com.codenjoy.clientrunner.model.*;
 import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.exception.SolutionNotFoundException;
-import com.codenjoy.clientrunner.model.Solution;
-import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.DockerService;
 import com.codenjoy.clientrunner.service.facade.LogWriter;
 import lombok.SneakyThrows;
@@ -62,6 +59,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
                 new Random().nextInt(Integer.MAX_VALUE));
         path = Files.createDirectory(path);
         Files.createFile(path.resolve("pom.xml"));
+        Files.createFile(path.resolve(Platform.JAVA.getFilename()));
         sources = path.toFile();
     }
 
@@ -204,7 +202,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
 
     private void whenWaitRunContainer_thenWriteLogs() {
         doAnswer(invocation -> {
-            writeLogs(invocation, "Running", 1, "");
+            writeLogs(invocation, "Running", 1, "\n");
             return null;
         }).when(dockerService).logContainer(any(), any());
     }
