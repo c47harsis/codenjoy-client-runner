@@ -17,7 +17,8 @@ public enum Platform {
     RUBY("ruby.mrk"),
     PYTHON("python.mrk"),
     GO("go.mrk"),
-    PHP("php.mrk");
+    PHP("php.mrk"),
+    CSHARP("csharp.mrk");
 
     private final String filename;
 
