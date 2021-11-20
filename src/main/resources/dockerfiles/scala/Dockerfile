@@ -21,6 +21,6 @@ ENV GAME_TO_RUN_VAR=$GAME_TO_RUN
 
 WORKDIR /app
 
-COPY --from=build /app/target/client-scala-exec.jar ./app.jar
+COPY --from=build /app/target/client-exec.jar ./app.jar
 
 ENTRYPOINT java -jar ./app.jar "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR"
