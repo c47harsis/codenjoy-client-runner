@@ -13,7 +13,7 @@ public enum Platform {
     JAVA("java.mrk"),
     SCALA("scala.mrk"),
     KOTLIN("kotlin.mrk"),
-    NODEJS("javascript.mrk"),
+    JAVASCRIPT("javascript.mrk"),
     RUBY("ruby.mrk"),
     PYTHON("python.mrk"),
     GO("go.mrk"),
