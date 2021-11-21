@@ -5,7 +5,7 @@ FROM maven:3.6.0-jdk-11-slim AS build
 
 WORKDIR /app
 
-COPY src ./src
+COPY src ./src/
 COPY pom.xml .
 
 RUN --mount=type=cache,target=/root/.m2 mvn -f ./pom.xml -B clean compile assembly:single -DskipTests=true -Pjar-with-dependencies,noGit

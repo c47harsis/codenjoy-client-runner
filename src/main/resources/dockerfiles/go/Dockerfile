@@ -13,6 +13,6 @@ RUN apk --update add git less openssh && \
 
 WORKDIR /app
 
-COPY . .
+COPY . ./
 
 ENTRYPOINT go run ./main.go "${GAME_TO_RUN_VAR}" "${SERVER_URL_VAR}"

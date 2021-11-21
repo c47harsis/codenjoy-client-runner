@@ -8,7 +8,7 @@ ENV GAME_TO_RUN_VAR=$GAME_TO_RUN
 
 WORKDIR /app
 
-COPY . .
+COPY . ./
 
 RUN php /usr/bin/composer u
 

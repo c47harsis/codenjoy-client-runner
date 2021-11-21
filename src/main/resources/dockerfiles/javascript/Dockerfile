@@ -8,10 +8,10 @@ ENV GAME_TO_RUN_VAR=$GAME_TO_RUN
 
 WORKDIR /app
 
-COPY package*.json .
+COPY package*.json ./
 
 RUN npm install 2>&1
 
-COPY . .
+COPY . ./
 
 ENTRYPOINT npm start "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR"

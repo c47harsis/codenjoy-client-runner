@@ -8,6 +8,6 @@ ENV GAME_TO_RUN_VAR=$GAME_TO_RUN
 
 WORKDIR /app
 
-COPY . .
+COPY . ./
 
 ENTRYPOINT python -u ./main.py "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR"
