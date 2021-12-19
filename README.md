@@ -26,11 +26,11 @@ to front-end.
 ### Run with Maven right on the local host
 The command below will build the application using Maven and run in right on the local host:
 ```
-$ sh ./scripts/run_with_maven_war.sh
+$ sh ./build/run_with_maven_war.sh
 ```
 or
 ```
-$ sh ./scripts/run_with_maven_spring.sh
+$ sh ./build/run_with_maven_spring.sh
 ```
 For configuring application's behaviour you can set these environment variables.
 
@@ -48,7 +48,7 @@ Variable | Defaults | Description
 The command below will build and start a container with the app and with
 default config:
 ```
-$ sh ./scripts/run_with_docker-compose.sh
+$ sh ./build/run_with_docker-compose.sh
 ```
 For configuring container's port or folder path, where solutions will be stored,
 change `docker-compose/.env` file:
