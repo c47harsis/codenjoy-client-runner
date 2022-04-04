@@ -1,5 +1,27 @@
 package com.codenjoy.clientrunner.model;
 
+/*-
+ * #%L
+ * Codenjoy - it's a dojo-like platform from developers to developers.
+ * %%
+ * Copyright (C) 2012 - 2022 Codenjoy
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
 import lombok.*;
 import org.springframework.util.Assert;
 
@@ -20,6 +42,7 @@ public class Solution {
 
     private final String playerId;
     private final String code;
+    private final String gameToRun;
     private final String serverUrl;
     private final File sources;
     private final Platform platform;
@@ -31,9 +54,10 @@ public class Solution {
     private String containerId;
     private volatile Status status;
 
-    private Solution(String playerId, String code, String serverUrl, File sources, Platform platform) {
+    private Solution(String playerId, String code, String gameToRun, String serverUrl, File sources, Platform platform) {
         this.playerId = playerId;
         this.code = code;
+        this.gameToRun = gameToRun;
         this.serverUrl = serverUrl;
         this.status = NEW;
         this.sources = sources;
@@ -55,7 +79,9 @@ public class Solution {
                             "for sources: '%s'", sources));
         }
         return new Solution(token.getPlayerId(), token.getCode(),
-                token.getServerUrl(), sources, platform);
+                token.getGameToRun(),
+                token.getServerUrl(),
+                sources, platform);
     }
 
     private static Platform detectPlatform(File sources) {

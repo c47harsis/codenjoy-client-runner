@@ -26,24 +26,29 @@ to front-end.
 ### Run with Maven right on the local host
 The command below will build the application using Maven and run in right on the local host:
 ```
-$ sh ./scripts/run_with_maven.sh
+$ sh ./build/run_with_maven_war.sh
+```
+or
+```
+$ sh ./build/run_with_maven_spring.sh
 ```
 For configuring application's behaviour you can set these environment variables.
 
 Variable | Defaults | Description
 ---------|:----------:|------------
-`SERVICE_CONTEXT` | /client-runner | Web app context
-`SOLUTIONS_FOLDER_PATH` | ./solutions | Where to store downloaded solutions
-`SOLUTION_FOLDER_PATTERN` | yyyy-MM-dd'_'HH-mm-ss | How to name each solution folder
-`DOCKER_MEMORY_LIMIT_MB` | 0 | [Memory limit in MB](https://docs.docker.com/engine/reference/commandline/build/)
-`DOCKER_CPU_PERIOD` | 100000 | [Limit the CPU CFS (Completely Fair Scheduler) period](https://docs.docker.com/engine/reference/commandline/build/)
-`DOCKER_CPU_QUOTA` | -1 | [Limit the CPU CFS quota](https://docs.docker.com/engine/reference/commandline/build/)
+`context` | /client-runner | Web application context
+`server.port` | 8081 | Web application port
+`service.solutions.path` | ./solutions | Where to store downloaded solutions
+`service.solutions.pattern` | yyyy-MM-dd'_'HH-mm-ss | How to name each solution folder
+`docker.container.memoryLimitMB` | 0 | [Memory limit in MB](https://docs.docker.com/engine/reference/commandline/build/)
+`docker.container.cpuPeriod` | 100000 | [Limit the CPU CFS (Completely Fair Scheduler) period](https://docs.docker.com/engine/reference/commandline/build/)
+`docker.container.cpuQuota` | -1 | [Limit the CPU CFS quota](https://docs.docker.com/engine/reference/commandline/build/)
 
 ### Run in Docker container  __[Recommended]__
 The command below will build and start a container with the app and with
 default config:
 ```
-$ sh ./scripts/run_with_docker-compose.sh
+$ sh ./build/run_with_docker-compose.sh
 ```
 For configuring container's port or folder path, where solutions will be stored,
 change `docker-compose/.env` file:

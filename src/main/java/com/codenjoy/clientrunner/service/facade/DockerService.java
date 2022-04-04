@@ -1,5 +1,27 @@
 package com.codenjoy.clientrunner.service.facade;
 
+/*-
+ * #%L
+ * Codenjoy - it's a dojo-like platform from developers to developers.
+ * %%
+ * Copyright (C) 2012 - 2022 Codenjoy
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
@@ -20,6 +42,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -28,7 +51,8 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class DockerService {
 
-    public static final String SERVER_PARAMETER = "CODENJOY_URL";
+    public static final String SERVER_URL = "SERVER_URL";
+    public static final String GAME_TO_RUN = "GAME_TO_RUN";
 
     private final DockerClientConfig dockerClientConfig = DefaultDockerClientConfig
             .createDefaultConfigBuilder()
@@ -104,9 +128,10 @@ public class DockerService {
                 .exec().getId();
     }
 
-    public void buildImage(File sources, String serverUrl, LogWriter writer, Consumer<String> onCompete) {
+    public void buildImage(File sources, String gameToRun, String serverUrl, LogWriter writer, Consumer<String> onCompete) {
         docker.buildImageCmd(sources)
-                .withBuildArg(SERVER_PARAMETER, serverUrl)
+                .withBuildArg(GAME_TO_RUN, gameToRun)
+                .withBuildArg(SERVER_URL, serverUrl)
                 .exec(new BuildImageResultCallback() {
                     private String imageId;
                     private String error;
@@ -143,8 +168,10 @@ public class DockerService {
                 .exec(new ResultCallback.Adapter<>() {
 
                     @Override
-                    public void onNext(Frame object) {
-                        writer.write(object);
+                    public void onNext(Frame frame) {
+                        String string = new String(frame.getPayload(),
+                                StandardCharsets.UTF_8);
+                        writer.write(string);
                     }
 
                     @Override

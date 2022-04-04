@@ -1,12 +1,31 @@
 package com.codenjoy.clientrunner.service;
 
-import com.codenjoy.clientrunner.model.LogType;
-import com.codenjoy.clientrunner.model.TokenTest;
+/*-
+ * #%L
+ * Codenjoy - it's a dojo-like platform from developers to developers.
+ * %%
+ * Copyright (C) 2012 - 2022 Codenjoy
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
+import com.codenjoy.clientrunner.model.*;
 import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.exception.SolutionNotFoundException;
-import com.codenjoy.clientrunner.model.Solution;
-import com.codenjoy.clientrunner.model.Token;
 import com.codenjoy.clientrunner.service.facade.DockerService;
 import com.codenjoy.clientrunner.service.facade.LogWriter;
 import lombok.SneakyThrows;
@@ -62,6 +81,7 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
                 new Random().nextInt(Integer.MAX_VALUE));
         path = Files.createDirectory(path);
         Files.createFile(path.resolve("pom.xml"));
+        Files.createFile(path.resolve(Platform.JAVA.getFilename()));
         sources = path.toFile();
     }
 
@@ -204,17 +224,19 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
 
     private void whenWaitRunContainer_thenWriteLogs() {
         doAnswer(invocation -> {
-            writeLogs(invocation, "Running", 1, "");
+            writeLogs(invocation, "Running", 1, "\n");
             return null;
         }).when(dockerService).logContainer(any(), any());
     }
 
     private void whenImageBuilt_thenRunContainer(String imageId) {
         doAnswer(invocation -> {
-            writeLogs(invocation, "Building", 2, "\n");
-            invocation.getArgument(3, Consumer.class).accept(imageId);
+            writeLogs(invocation, "Building", 3, "\n");
+            invocation.getArgument(4, Consumer.class).accept(imageId);
             return null;
-        }).when(dockerService).buildImage(any(), any(), any(), any());
+        }).when(dockerService).buildImage(any(),
+                anyString(), anyString(),
+                any(), any());
     }
 
     private void writeLogs(InvocationOnMock invocation, String phase, int index, String newLine) {
@@ -230,7 +252,9 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         solutionManager.runSolution(token, sources);
 
         // then
-        verify(dockerService, only()).buildImage(same(sources), same(token.getServerUrl()), any(), any());
+        verify(dockerService, only()).buildImage(same(sources),
+                same(token.getGameToRun()), same(token.getServerUrl()),
+                any(), any());
     }
 
     @Test
@@ -239,7 +263,9 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         // given
         doThrow(RuntimeException.class)
                 .when(dockerService)
-                .buildImage(isA(File.class), anyString(), any(), any());
+                .buildImage(any(),
+                        anyString(), anyString(),
+                        any(), any());
 
         // when
         id = solutionManager.runSolution(token, sources);
@@ -278,7 +304,9 @@ public class SolutionManagerTest extends AbstractTestNGSpringContextTests {
         // then
         SolutionSummary summary = solutionManager.getAllSolutionSummary(token).get(0);
         assertEquals(summary.getStatus(), KILLED.name());
-        verify(dockerService, never()).buildImage(any(), any(), any(), any());
+        verify(dockerService, never()).buildImage(any(),
+                anyString(), anyString(),
+                any(), any());
     }
 
     private void kill(Token token) {

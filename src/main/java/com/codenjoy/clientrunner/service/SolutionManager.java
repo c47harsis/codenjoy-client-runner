@@ -1,5 +1,27 @@
 package com.codenjoy.clientrunner.service;
 
+/*-
+ * #%L
+ * Codenjoy - it's a dojo-like platform from developers to developers.
+ * %%
+ * Copyright (C) 2012 - 2022 Codenjoy
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
 import com.codenjoy.clientrunner.config.DockerConfig;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.exception.SolutionNotFoundException;
@@ -18,13 +40,13 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.codenjoy.clientrunner.model.Solution.Status.*;
@@ -70,7 +92,9 @@ public class SolutionManager {
 
         try {
             solution.setStatus(COMPILING);
-            docker.buildImage(sources, solution.getServerUrl(),
+            docker.buildImage(sources,
+                    solution.getGameToRun(),
+                    solution.getServerUrl(),
                     new LogWriter(solution, true),
                     imageId -> runContainer(solution, imageId));
         } catch (Throwable e) {
@@ -180,12 +204,17 @@ public class SolutionManager {
 
     private List<String> readLogs(Solution solution, LogType type, int offset) {
         String logFilePath = solution.getSources() + "/" + type.getFilename();
-        try (Stream<String> log = Files.lines(Paths.get(logFilePath))) {
-            return log.skip(offset).collect(Collectors.toList());
+        try (Stream<String> log =
+                     Files.lines(Paths.get(logFilePath),
+                        StandardCharsets.UTF_8)) {
+            return log.skip(offset)
+                    .collect(toList());
         } catch (IOException e) {
-            log.error("Log file not exists: " + logFilePath);
-            throw new IllegalStateException("Solution with id: " + solution.getId()
-                    + " is in " + solution.getStatus() + " status, but build log not exists");
+            log.debug("Solution with id: '{}' is in '{}' status, therefore log file '{}' not exists",
+                    solution.getId(),
+                    solution.getStatus(),
+                    logFilePath);
+            return Arrays.asList();
         }
     }
 

@@ -1,3 +1,24 @@
+/*-
+ * #%L
+ * Codenjoy - it's a dojo-like platform from developers to developers.
+ * %%
+ * Copyright (C) 2012 - 2022 Codenjoy
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
 var getSolutionsInterval
 var logsInterval
 var solutionStatusInterval
@@ -249,12 +270,12 @@ function fetchSolutionStatus(solutionId) {
     })
 }
 
-function fetchRuntimeLogs(solutionId) {
+function fetchLogs(logsType, solutionId) {
     var linesCount = $('#logField .logLine').length;
 
     $.ajax({
         type: "get",
-        url: "runtime_logs",
+        url: logsType + "_logs",
         data: {
             serverUrl: getUrls().serverUrl,
             solutionId: solutionId,
@@ -266,30 +287,17 @@ function fetchRuntimeLogs(solutionId) {
         success: function (response) {
             console.log(response);
             $.each(response, function (i, logStr) {
+                logStr = logStr.replaceAll(' ', '&nbsp;');
                 $('#logField').append('<samp class="logLine">' + logStr + '</samp><br/>');
             });
         }
     })
 }
 
+function fetchRuntimeLogs(solutionId) {
+    fetchLogs("runtime", solutionId);
+}
+
 function fetchBuildLogs(solutionId) {
-    var linesCount = $('#logField .logLine').length;
-    $.ajax({
-        type: "get",
-        url: "build_logs",
-        data: {
-            serverUrl: getUrls().serverUrl,
-            solutionId: solutionId,
-            offset: linesCount
-        },
-        dataType: "json",
-        contentType: "application/json",
-        cache: "false",
-        success: function (response) {
-            console.log(response);
-            $.each(response, function (i, logStr) {
-                $('#logField').append('<samp class="logLine">' + logStr + '</samp><br/>');
-            });
-        }
-    })
+    fetchLogs("build", solutionId);
 }

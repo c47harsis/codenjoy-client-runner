@@ -21,6 +21,10 @@ ENV GAME_TO_RUN_VAR=$GAME_TO_RUN
 
 WORKDIR /app
 
-COPY --from=build /app/target/client-exec.jar ./app.jar
+ARG PSEUDO_RULES
+ENV PSEUDO_RULES_VAR=$PSEUDO_RULES
 
-ENTRYPOINT java -jar ./app.jar "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR"
+COPY --from=build /app/target/client-exec.jar ./app.jar
+COPY $PSEUDO_RULES_VAR rules/
+
+ENTRYPOINT java -jar ./app.jar "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR" "./rules"

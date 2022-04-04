@@ -1,5 +1,27 @@
 package com.codenjoy.clientrunner;
 
+/*-
+ * #%L
+ * Codenjoy - it's a dojo-like platform from developers to developers.
+ * %%
+ * Copyright (C) 2012 - 2022 Codenjoy
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
 import com.codenjoy.clientrunner.dto.CheckRequest;
 import com.codenjoy.clientrunner.dto.SolutionSummary;
 import com.codenjoy.clientrunner.model.LogType;
@@ -8,10 +30,15 @@ import com.codenjoy.clientrunner.service.SolutionManager;
 import com.codenjoy.clientrunner.service.facade.DockerService;
 import com.codenjoy.clientrunner.service.facade.GitService;
 import lombok.SneakyThrows;
+import org.apache.commons.lang.SystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -22,7 +49,17 @@ import static org.testng.Assert.assertTrue;
 
 @SpringBootTest(classes = ClientRunnerApplication.class,
         properties = "spring.main.allow-bean-definition-overriding=true")
+@ContextConfiguration(initializers = IntegrationTest.Initializer.class)
 public class IntegrationTest extends AbstractTestNGSpringContextTests {
+
+    public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        @Override
+        public void initialize(ConfigurableApplicationContext context) {
+            if (SystemUtils.IS_OS_WINDOWS) {
+                System.setProperty("DOCKER_HOST", "tcp://localhost:2375");
+            }
+        }
+    }
 
     @SpyBean
     private DockerService docker;
@@ -40,6 +77,7 @@ public class IntegrationTest extends AbstractTestNGSpringContextTests {
     private List<String> logs;
 
     @Test
+    @Ignore // TODO fix me
     @SneakyThrows
     public void shouldCheckTwoSolutions_forSameServerUrlAndRepo() {
         String serverUrl = "http://5.189.144.144/codenjoy-contest/board/player/0?code=000000000000";

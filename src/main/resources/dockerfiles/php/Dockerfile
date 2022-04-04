@@ -1,4 +1,4 @@
-FROM python:3.10.0-alpine
+FROM composer:2.1.9
 
 ARG SERVER_URL
 ENV SERVER_URL_VAR=$SERVER_URL
@@ -10,4 +10,6 @@ WORKDIR /app
 
 COPY . ./
 
-ENTRYPOINT python -u ./main.py "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR"
+RUN php /usr/bin/composer u
+
+ENTRYPOINT php ./index.php "$GAME_TO_RUN_VAR" "$SERVER_URL_VAR"
